@@ -4,7 +4,7 @@
      <xacro:include filename="inertial_macros.xacro"/>
 
     <material name="white">
-        <color rgba="1 1 1 1"/>
+        <color rgba="1 1 1 1" />
     </material>
 
     <material name="orange">
@@ -40,7 +40,7 @@
             <geometry>
                 <box size="0.35 0.35 0.15" />
             </geometry>
-            <material name="white" />
+            <material name="white"/>
         </visual>
         <collision>
             <origin xyz="0 0 0.075"/>
@@ -66,8 +66,8 @@
         <visual>
             <geometry>
                 <cylinder radius="0.05" length="0.04" />
-                <material name="blue" />
             </geometry>
+             <material name="blue"/>
         </visual>
         <collision>
             <geometry>
@@ -92,8 +92,8 @@
         <visual>
             <geometry>
                 <cylinder radius="0.05" length="0.04" />
-                <material name="blue" />
             </geometry>
+             <material name="blue"/>
         </visual>
         <collision>
             <geometry>
@@ -117,8 +117,8 @@
         <visual>
             <geometry>
                 <sphere radius="0.05" />
-                <material name="black" />
             </geometry>
+            <material name="black"/>
         </visual>
         <collision>
             <geometry>
