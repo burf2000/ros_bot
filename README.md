@@ -3,6 +3,8 @@
 To launch for Robot
 
 Fire off launch_sim.launch.py
+ros2 run teleop_twist_keyboard  teleop_twist_keyboard 
+
 ros2 launch ros_bot launch_sim.launch.py
 ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
 
@@ -11,6 +13,7 @@ ros2 launch ros_bot rsp.launch.py use_sim_time:=true
 
 
 To launch Gazebo
+USE A PC!!!!! classic does not work on mac
 ros2 launch gazebo_ros gazebo.launch.py
 ros2 launch ros_gz_sim gz_sim.launch.py !!!!!
 
