@@ -18,6 +18,12 @@ Spawn the bot
 ros2 run gazebo_ros spawn_entity.py -topic robot_description -entity ros_bot
 
 
+Remember to source!!
+source install/setup.bash
+
+
+Build everything
+colcon build --symlink-install
 
 Misc
 ros2 run joint_state_publisher_gui joint_state_publisher_gui
@@ -28,4 +34,6 @@ ros2 topic echo /cmd_vel
 
 
 // to launch ROS gazebo
+https://classic.gazebosim.org/tutorials?tut=install_ubuntu&cat=install
+
 https://gazebosim.org/docs/latest/ros2_launch_gazebo/
