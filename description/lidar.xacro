@@ -26,7 +26,7 @@
 
 
 
-    <<gazebo reference="laser_frame">
+    <gazebo reference="laser_frame">
         <material>Gazebo/Black</material>
 
         <sensor name="laser" type="gpu_lidar">
