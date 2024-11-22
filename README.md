@@ -62,3 +62,8 @@ ros2 run rqt_image_view rqt_image_view
 https://classic.gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 
 https://gazebosim.org/docs/latest/ros2_launch_gazebo/
+
+
+Depth camera (ros2)
+https://github.com/ros-drivers/openni2_camera/tree/iron
+https://github.com/mgonzs13/ros2_asus_xtion
