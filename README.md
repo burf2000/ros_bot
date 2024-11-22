@@ -35,6 +35,28 @@ ros2 run joint_state_publisher_gui joint_state_publisher_gui
 Show the velcoity etc
 ros2 topic echo /cmd_vel
 
+Compression
+sudo apt install ros-humble-rqt-image-view
+sudo apt install ros-humble-image-transport-plugins
+
+If camera is missing compressed or raw run
+ros2 run image_transport list_transports
+ros2 run image_transport republish compressed raw --ros-args -r in/compressed:=/camera/image_raw/compressed -r out:=/camera/image_raw/uncompressed
+
+On Pi install (camera)
+sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera
+
+groups (list groups you need to make sure you in video group)
+sudo usermod -aG video burf2000
+
+Make sure camera is working
+vcgencmd get_camera to check it sees camera
+v4l2-ctl --list-devices
+Start the Ros Node
+ros2 run v4l2_camera v4l2_camera_node --ros-args -p image_size:="[640,480]" -p camera_frame_id:=camera_link_optical
+
+View camera
+ros2 run rqt_image_view rqt_image_view
 
 // to launch ROS gazebo
 https://classic.gazebosim.org/tutorials?tut=install_ubuntu&cat=install
