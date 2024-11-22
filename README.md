@@ -40,3 +40,16 @@ ros2 topic echo /cmd_vel
 https://classic.gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 
 https://gazebosim.org/docs/latest/ros2_launch_gazebo/
+
+MISSING
+hardware_interfaceConfig.cmake
+hardware_interface-config.cmake
+Sudo apt-get install ros-humble-hardware-interface
+
+Also need to install
+https://github.com/joshnewans/diffdrive_arduino
+
+https://github.com/joshnewans/serial
+
+If ROS2 control is missing (controller manager)
+https://control.ros.org/humble/doc/getting_started/getting_started.html
