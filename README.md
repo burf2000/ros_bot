@@ -15,11 +15,13 @@ New way so topic is mapped
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
 
 
-To launch for Robot
+To launch Sim
 ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
 ros2 launch ros_bot launch_sim.launch.py
 ros2 launch ros_bot rsp.launch.py use_sim_time:=true
 
+To launch robot
+ros2 launch ros_bot launch_robot.launch.py
 
 To launch Gazebo
 USE A PC!!!!! classic does not work on mac
@@ -88,3 +90,24 @@ https://github.com/mgonzs13/ros2_asus_xtion
 Neato lidar
 https://github.com/derkaputte/xv_11_driver/tree/main
 ros2 run xv_11_driver xv_11_driver --ros-args -p frame_id:=laser_frame -p port:=/dev/ttyACM0
+
+FOR PI
+sudo apt install ros-humble-twist-mux
+sudo apt install libserial-dev
+sudo apt install ros-humble-xacro 
+https://github.com/joshnewans/serial
+https://github.com/joshnewans/diff-drive_arduino
+
+List serial
+ls /dev/tty* 
+ls /dev/serial
+ls /dev/serial/by-id 
+
+HUMBLE ISSUES
+spawner.py becomes spawner
+Remove brltty from pi
+sudo apt remove brltty
+Legacy driver for camera (see video)
+
+USB permission
+sudo usermod -a -G tty burf2000
