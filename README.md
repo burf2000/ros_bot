@@ -1,9 +1,9 @@
 ## Robot Package Template
 ALL WAYS DO
-Remember to source!!
+Remember to source!! (root of the workspace)
 source install/setup.bash
 
-Build everything
+Build everything (root of the workspace)
 colcon build --symlink-install
 
 List topics
@@ -44,6 +44,8 @@ sudo apt install ros-humble-image-transport-plugins
 
 Install Ros2 Control
 sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control
+Pi
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers 
 
 ros2 control list_hardware_interfaces
 ros2 run controller_manager spawner diff_cont
