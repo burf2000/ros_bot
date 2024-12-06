@@ -8,7 +8,7 @@ def generate_launch_description():
 
         Node(
             package='xv_11_driver',
-            executable='rxv_11_driver',
+            executable='xv_11_driver',
             output='screen',
             parameters=[{
                 'serial_port': '/dev/ttyACM0',
