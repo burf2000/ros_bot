@@ -56,8 +56,6 @@ Visualization Manager:
           Value: true
         chassis:
           Value: true
-        face_link:
-          Value: true
         laser_frame:
           Value: true
         left_wheel:
@@ -79,8 +77,6 @@ Visualization Manager:
                 camera_link_optical:
                   {}
               caster_wheel:
-                {}
-              face_link:
                 {}
               laser_frame:
                 {}
@@ -127,11 +123,6 @@ Visualization Manager:
           Show Trail: false
           Value: true
         chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        face_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
