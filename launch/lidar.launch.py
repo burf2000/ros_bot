@@ -11,7 +11,7 @@ def generate_launch_description():
             executable='xv_11_driver',
             output='screen',
             parameters=[{
-                'serial_port': '/dev/ttyACM0',
+                'port': '/dev/ttyACM0',
                 'frame_id': 'laser_frame'
             }]
         )
