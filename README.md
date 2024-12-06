@@ -11,7 +11,7 @@ ros2 topic list (useful)
 
 Old way of controller before Ros2 Control
 ros2 run teleop_twist_keyboard  teleop_twist_keyboard 
-New way so topic is mapped
+New way so topic is mapped  !!!!
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
 
 
@@ -68,6 +68,8 @@ vcgencmd get_camera to check it sees camera
 v4l2-ctl --list-devices
 Start the Ros Node
 ros2 run v4l2_camera v4l2_camera_node --ros-args -p image_size:="[640,480]" -p camera_frame_id:=camera_link_optical
+To RUN CAMERA
+ros2 launch ros_bot camera.launch
 
 View camera
 ros2 run rqt_image_view rqt_image_view
