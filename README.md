@@ -6,13 +6,18 @@ source install/setup.bash
 Build everything
 colcon build --symlink-install
 
-To launch for Robot
+List topics
+ros2 topic list (useful)
 
-Fire off launch_sim.launch.py
+Old way of controller before Ros2 Control
 ros2 run teleop_twist_keyboard  teleop_twist_keyboard 
+New way so topic is mapped
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
 
-ros2 launch ros_bot launch_sim.launch.py
+
+To launch for Robot
 ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
+ros2 launch ros_bot launch_sim.launch.py
 ros2 launch ros_bot rsp.launch.py use_sim_time:=true
 
 
@@ -34,8 +39,12 @@ Compression
 sudo apt install ros-humble-rqt-image-view
 sudo apt install ros-humble-image-transport-plugins
 
-Install Ros2 controller
+Install Ros2 Control
 sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control
+
+ros2 control list_hardware_interfaces
+ros2 run controller_manager spawner diff_cont
+ros2 run controller_manager spawner joint_broad
 
 If camera is missing compressed or raw run
 ros2 run image_transport list_transports
