@@ -26,6 +26,9 @@ USE A PC!!!!! classic does not work on mac
 ros2 launch gazebo_ros gazebo.launch.py
 ros2 launch ros_gz_sim gz_sim.launch.py !!!!!
 
+RVIZ
+rviz2 -d/src/ros_bot/config/main.rviz
+
 Spawn the bot
 ros2 run gazebo_ros spawn_entity.py -topic robot_description -entity ros_bot
 
