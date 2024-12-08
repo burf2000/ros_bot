@@ -15,7 +15,7 @@ def generate_launch_description():
 
 
     # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
-    
+
     package_name='ros_bot' #<--- CHANGE ME
 
     rsp = IncludeLaunchDescription(
@@ -88,7 +88,7 @@ def generate_launch_description():
     # Launch them all!
     return LaunchDescription([
         rsp,
-        # joystick,
+        joystick,
         # twist_mux,
         gazebo,
         spawn_entity,
