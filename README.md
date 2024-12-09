@@ -113,3 +113,10 @@ Legacy driver for camera (see video)
 
 USB permission
 sudo usermod -a -G tty burf2000
+
+Joystick
+sudo apt install joystick jstest-gtk evtest
+run: evtest
+ros2 run joy joy_enumerate_devices
+ros2 run joy joy_node
+Extra package ros2 run joy_tester test_joy
