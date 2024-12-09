@@ -120,3 +120,18 @@ run: evtest
 ros2 run joy joy_enumerate_devices
 ros2 run joy joy_node
 Extra package ros2 run joy_tester test_joy
+
+SLAM toolbox
+sudo apt install ros-humble-slam-toolbox
+Run:
+ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml
+
+
+Nav2 toolbox
+sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup ros-humble-turtlebot3*
+Run:
+ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true
+
+TwistMux to combine topics from joystick and nav2
+sudo apt install ros-humble-twist-mux
+ros2 run twist_mux twist_mux --ros-args --params-file ./src/ros_bot/config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped
