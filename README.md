@@ -8,6 +8,8 @@ colcon build --symlink-install
 
 
 TO GET ROBOT RUNNING
+ssh burf2000@pi4-ros.local
+
 On Robot
 sudo chmod a+rw /dev/ttyUSB0
 ros2 launch ros_bot launch_robot.launch.py
@@ -16,7 +18,7 @@ ros2 run xv_11_driver xv_11_driver --ros-args -p frame_id:=laser_frame -p port:=
 ros2 launch ros_bot camera.launch / ros2 run v4l2_camera v4l2_camera_node --ros-args -p image_size:="[640,480]" -p camera_frame_id:=camera_link_optical
 
 On desktop
-ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml
+ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml use_sim_time:=false
 ros2 launch nav2_bringup navigation_launch.py use_sim_time:=false
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
 
