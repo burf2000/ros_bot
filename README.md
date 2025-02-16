@@ -19,7 +19,7 @@ ros2 launch ros_bot camera.launch / ros2 run v4l2_camera v4l2_camera_node --ros-
 
 On desktop
 ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml use_sim_time:=false
-ros2 launch nav2_bringup navigation_launch.py use_sim_time:=false
+ros2 launch nav2_bringup navigation_launch.py params_file:=./src/ros_bot/config/nav2_params.yaml use_sim_time:=false 
 ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
 
 rviz2 -d src/ros_bot/config/main.rviz
