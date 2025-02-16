@@ -25,9 +25,11 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/di
 rviz2 -d src/ros_bot/config/main.rviz
 ros2 run rqt_image_view rqt_image_view (see image)
 
-
-List topics
+** List topics
 ros2 topic list (useful)
+ros2 topic echo /Name of topic to see messages
+ros2 topic info /NAME --verbose for detailed info 
+ros2 topic hz / NAME gives you hertz etc
 
 Old way of controller before Ros2 Control
 ros2 run teleop_twist_keyboard  teleop_twist_keyboard 
