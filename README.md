@@ -27,9 +27,16 @@ ros2 run rqt_image_view rqt_image_view (see image)
 
 ** List topics
 ros2 topic list (useful)
-ros2 topic echo /Name of topic to see messages
+ros2 topic echo /Name of topic to see messages!!!!!!!!!
 ros2 topic info /NAME --verbose for detailed info 
-ros2 topic hz / NAME gives you hertz etc
+ros2 topic hz /NAME gives you hertz etc
+ros2 topic pub /NAME std_msgs/msg/String "date: 'Message'"
+
++++ Control
+ros2 control (lists everything)
+ros2 control list_controllers
+ros2 control list_hardware_components
+ros2 control list_hardware_interfaces
 
 Old way of controller before Ros2 Control
 ros2 run teleop_twist_keyboard  teleop_twist_keyboard 
