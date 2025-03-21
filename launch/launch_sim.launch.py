@@ -16,6 +16,7 @@ def generate_launch_description():
 
 
     # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
+
     package_name='ros_bot' #<--- CHANGE ME
 
     rsp = IncludeLaunchDescription(
@@ -71,26 +72,6 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
-
-    bridge_params = os.path.join(get_package_share_directory(package_name),'config','gz_bridge.yaml')
-    ros_gz_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        arguments=[
-            '--ros-args',
-            '-p',
-            f'config_file:={bridge_params}',
-        ]
-    )
-
-    ros_gz_image_bridge = Node(
-        package="ros_gz_image",
-        executable="image_bridge",
-        arguments=["/camera/image_raw"]
-    )
-
-
-
     # Code for delaying a node (I haven't tested how effective it is)
     # 
     # First add the below lines to imports
@@ -113,11 +94,9 @@ def generate_launch_description():
     return LaunchDescription([
         rsp,
         joystick,
-        world_arg,
+        # twist_mux,
         gazebo,
         spawn_entity,
         diff_drive_spawner,
-        joint_broad_spawner,
-        ros_gz_bridge,
-        ros_gz_image_bridge
+        joint_broad_spawner
     ])
