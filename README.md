@@ -6,8 +6,37 @@ source install/setup.bash
 Build everything (root of the workspace)
 colcon build --symlink-install
 
-List topics
+
+TO GET ROBOT RUNNING
+ssh burf2000@pi4-ros.local
+
+On Robot
+sudo chmod a+rw /dev/ttyUSB0
+ros2 launch ros_bot launch_robot.launch.py
+sudo chmod a+rw /dev/ttyACM0
+ros2 run xv_11_driver xv_11_driver --ros-args -p frame_id:=laser_frame -p port:=/dev/ttyACM0
+ros2 launch ros_bot camera.launch / ros2 run v4l2_camera v4l2_camera_node --ros-args -p image_size:="[640,480]" -p camera_frame_id:=camera_link_optical
+
+On desktop
+ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml use_sim_time:=false
+ros2 launch nav2_bringup navigation_launch.py params_file:=./src/ros_bot/config/nav2_params.yaml use_sim_time:=false 
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
+
+rviz2 -d src/ros_bot/config/main.rviz
+ros2 run rqt_image_view rqt_image_view (see image)
+
+** List topics
 ros2 topic list (useful)
+ros2 topic echo /Name of topic to see messages!!!!!!!!!
+ros2 topic info /NAME --verbose for detailed info 
+ros2 topic hz /NAME gives you hertz etc
+ros2 topic pub /NAME std_msgs/msg/String "date: 'Message'"
+
++++ Control
+ros2 control (lists everything)
+ros2 control list_controllers
+ros2 control list_hardware_components
+ros2 control list_hardware_interfaces
 
 Old way of controller before Ros2 Control
 ros2 run teleop_twist_keyboard  teleop_twist_keyboard 
