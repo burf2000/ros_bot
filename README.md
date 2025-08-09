@@ -9,7 +9,7 @@ colcon build --symlink-install
 
 TO GET ROBOT RUNNING
 ssh burf2000@pi4-ros.local
-
+*********************************************************
 On Robot
 sudo chmod a+rw /dev/ttyUSB0
 ros2 launch ros_bot launch_robot.launch.py
@@ -24,6 +24,17 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/di
 
 rviz2 -d src/ros_bot/config/main.rviz
 ros2 run rqt_image_view rqt_image_view (see image)
+
+****************************************************************
+On Simulation
+ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
+ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml use_sim_time:=true
+ros2 launch nav2_bringup navigation_launch.py params_file:=./src/ros_bot/config/nav2_params.yaml use_sim_time:=true 
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+rviz2 -d src/ros_bot/config/main.rviz
+
+*********************************************************************8
 
 ** List topics
 ros2 topic list (useful)
