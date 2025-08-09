@@ -1,18 +1,21 @@
 import os
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
 
+
+
     return LaunchDescription([
 
         Node(
-            package='xv_11_driver',
-            executable='xv_11_driver',
+            package='v4l2_camera',
+            executable='v4l2_camera_node',
             output='screen',
             parameters=[{
-                'port': '/dev/ttyACM0',
-                'frame_id': 'laser_frame'
-            }]
-        )
+                'image_size': [640,480],
+                'camera_frame_id': 'camera_link_optical'
+                }]
+    )
     ])
