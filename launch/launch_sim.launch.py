@@ -6,7 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, Command
 
 from launch_ros.actions import Node
 
@@ -82,6 +82,18 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
+    robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
+
+    controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
+
+    controller_manager = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[{'robot_description': robot_description},
+                    controller_params_file],
+        output='screen'
+    )
+
 
     bridge_params = os.path.join(get_package_share_directory(package_name),'config','gz_bridge.yaml')
     ros_gz_bridge = Node(
@@ -128,6 +140,7 @@ def generate_launch_description():
         world_arg,
         gazebo,
         spawn_entity,
+        controller_manager,
         diff_drive_spawner,
         joint_broad_spawner,
         ros_gz_bridge,
