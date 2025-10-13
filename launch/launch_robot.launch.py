@@ -65,6 +65,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[{'robot_description': robot_description},
                     controller_params_file]
+        # remappings=[('/diff_cont/odom', '/odom')]
     )
 
     delayed_controller_manager = TimerAction(period=5.0, actions=[controller_manager])
