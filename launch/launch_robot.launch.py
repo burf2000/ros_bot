@@ -49,6 +49,12 @@ def generate_launch_description():
                 )])
     )
 
+    imu = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory("mpu9250driver"),'launch','mpu9250driver_launch.py'
+                )])
+    )
+
     camera = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(package_name),'launch','camera.launch.py'
@@ -121,6 +127,7 @@ def generate_launch_description():
         joystick,
         twist_mux,
         lidar,
+        imu,
         camera,
         delayed_controller_manager,
         delayed_diff_drive_spawner,
