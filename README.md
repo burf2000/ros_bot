@@ -31,7 +31,7 @@ sudo chmod a+rw /dev/ttyUSB0
 sudo chmod a+rw /dev/ttyACM0
 ros2 launch ros_bot launch_robot.launch.py
 
-ros2 launch mpu9250driver mpu9250driver_launch.py
+ros2 launch mpu6050driver mpu6050driver_launch.py
 ros2 run xv_11_driver xv_11_driver --ros-args -p frame_id:=laser_frame -p port:=/dev/ttyACM0
 ros2 launch ros_bot camera.launch
 # OR

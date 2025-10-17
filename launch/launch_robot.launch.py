@@ -34,6 +34,14 @@ def generate_launch_description():
                 )])
     )
 
+    static_tf_odom_to_basefootprint = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="odom_to_basefootprint_broadcaster",
+        arguments=["0", "0", "0", "0", "0", "0", "odom", "base_footprint"],
+        output="screen"
+    )
+
 
     twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
     twist_mux = Node(
@@ -131,5 +139,6 @@ def generate_launch_description():
         camera,
         delayed_controller_manager,
         delayed_diff_drive_spawner,
-        delayed_joint_broad_spawner
+        delayed_joint_broad_spawner,
+        static_tf_odom_to_basefootprint
     ])
