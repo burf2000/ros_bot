@@ -51,7 +51,7 @@ def generate_launch_description():
 
     imu = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory("mpu9250driver"),'launch','mpu9250driver_launch.py'
+                    get_package_share_directory("mpu6050driver"),'launch','mpu6050driver_launch.py'
                 )])
     )
 
