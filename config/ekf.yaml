@@ -10,12 +10,12 @@ ekf_filter_node:
     # If true, will publish the transform from the world_frame to the base_link_frame
     two_d_mode: true
 
-    # The transform from world_frame to base_link is published. The world_frame
-    # can be set to 'odom' for local odometry or 'map' for global localization
+    # The transform from world_frame to base_link_frame is published
+    # Since URDF has base_footprint → base_link, EKF publishes odom → base_footprint
     world_frame: odom
     map_frame: map
     odom_frame: odom
-    base_link_frame: base_link
+    base_link_frame: base_footprint
 
     # Defaults to "robot_localization_ekf_node" if not specified
     publish_tf: true
