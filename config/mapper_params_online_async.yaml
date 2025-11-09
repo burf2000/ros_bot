@@ -55,7 +55,7 @@ slam_toolbox:
     # Correlation Parameters - Correlation Parameters
     correlation_search_space_dimension: 0.5
     correlation_search_space_resolution: 0.01
-    correlation_search_space_smear_deviation: 0.1 
+    correlation_search_space_smear_deviation: 0.1
 
     # Correlation Parameters - Loop Closure Parameters
     loop_search_space_dimension: 8.0
@@ -63,12 +63,13 @@ slam_toolbox:
     loop_search_space_smear_deviation: 0.03
 
     # Scan Matcher Parameters
-    distance_variance_penalty: 0.5      
-    angle_variance_penalty: 1.0    
+    # Reduced penalties = trust odometry less, trust scan matching more
+    distance_variance_penalty: 0.3      # Reduced from 0.5
+    angle_variance_penalty: 0.5         # Reduced from 1.0 - less trust in odometry angles
 
-    fine_search_angle_offset: 0.00349     
-    coarse_search_angle_offset: 0.349   
-    coarse_angle_resolution: 0.0349        
+    fine_search_angle_offset: 0.00349
+    coarse_search_angle_offset: 0.524     # Increased from 0.349 (20°) to 0.524 (30°) - search wider angles
+    coarse_angle_resolution: 0.0349
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
     use_response_expansion: true
