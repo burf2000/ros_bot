@@ -33,7 +33,7 @@ ekf_filter_node:
     odom0_config: [false, false, false,  # x, y, z (position)
                    false, false, false,  # roll, pitch, yaw (orientation) - DON'T use wheel odom for orientation (slips!)
                    true,  true,  false,  # x_dot, y_dot, z_dot (linear velocity) - use wheels for linear velocity
-                   false, false, false,  # roll_dot, pitch_dot, yaw_dot - DON'T use wheel angular velocity (use IMU instead)
+                   false, false, true,   # roll_dot, pitch_dot, yaw_dot - Use wheel angular velocity (fused with IMU gyro)
                    false, false, false]  # x_ddot, y_ddot, z_ddot (linear acceleration)
 
     odom0_differential: false
@@ -49,14 +49,14 @@ ekf_filter_node:
     # ------------------------
     # IMU Sensor (imu0)
     # ------------------------
-    # NOTE: Adjust this topic name to match your IMU driver
-    # Common names: /imu/data, /imu, /mpu6050/imu
-    imu0: /imu/data
+    # MPU6050 publishes to /imu (not /imu/data)
+    # MPU6050 does NOT provide orientation quaternion, only gyro + accel
+    imu0: /imu
     imu0_config: [false, false, false,  # x, y, z (position) - IMU doesn't provide position
-                  false, false, true,   # roll, pitch, yaw (orientation) - ONLY use yaw from IMU (2D robot)
+                  false, false, false,  # roll, pitch, yaw (orientation) - NOT available from MPU6050!
                   false, false, false,  # x_dot, y_dot, z_dot (linear velocity)
-                  false, false, true,   # roll_dot, pitch_dot, yaw_dot (angular velocity) - ONLY yaw rate
-                  false, false, false]  # x_ddot, y_ddot, z_ddot - Don't use linear accel (noisy)
+                  false, false, true,   # roll_dot, pitch_dot, yaw_dot (angular velocity) - USE gyro for yaw rate!
+                  false, false, false]  # x_ddot, y_ddot, z_ddot - Don't use accel (too noisy)
 
     imu0_differential: false
     imu0_relative: false
