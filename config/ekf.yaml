@@ -33,7 +33,7 @@ ekf_filter_node:
     odom0_config: [false, false, false,  # x, y, z (position)
                    false, false, false,  # roll, pitch, yaw (orientation) - DON'T use wheel odom for orientation (slips!)
                    true,  true,  false,  # x_dot, y_dot, z_dot (linear velocity) - use wheels for linear velocity
-                   false, false, true,   # roll_dot, pitch_dot, yaw_dot - Use wheel angular velocity (fused with IMU gyro)
+                   false, false, true,   # roll_dot, pitch_dot, yaw_dot - Use wheel angular velocity
                    false, false, false]  # x_ddot, y_ddot, z_ddot (linear acceleration)
 
     odom0_differential: false
@@ -55,10 +55,10 @@ ekf_filter_node:
     imu0_config: [false, false, false,  # x, y, z (position) - IMU doesn't provide position
                   false, false, false,  # roll, pitch, yaw (orientation) - NOT available from MPU6050!
                   false, false, false,  # x_dot, y_dot, z_dot (linear velocity)
-                  false, false, true,   # roll_dot, pitch_dot, yaw_dot (angular velocity) - USE gyro for yaw rate!
+                  false, false, false,  # roll_dot, pitch_dot, yaw_dot - DISABLED: MPU6050 gyro too noisy
                   false, false, false]  # x_ddot, y_ddot, z_ddot - Don't use accel (too noisy)
 
-    imu0_differential: true  # Use differential mode to eliminate gyro bias drift
+    imu0_differential: false
     imu0_relative: false
 
     # Remove gravitational acceleration from IMU data
@@ -87,7 +87,7 @@ ekf_filter_node:
                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.04, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,  0.0,  0.0,  0.0,
                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,  0.0,  0.0,
-                               0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.05, 0.0,  0.0,  0.0,  # yaw_dot increased for gyro bias adaptation
+                               0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.02, 0.0,  0.0,  0.0,
                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,
                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,
                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.015]
