@@ -40,6 +40,15 @@ def generate_launch_description():
             remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
         )
 
+    # Robot Localization EKF - fuses wheel odometry + IMU (simulated)
+    ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
+    robot_localization_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_config_path, {'use_sim_time': True}]
+    )
 
     default_world = os.path.join(
         get_package_share_directory(package_name),
@@ -137,6 +146,7 @@ def generate_launch_description():
         rsp,
         joystick,
         twist_mux,
+        robot_localization_node,
         world_arg,
         gazebo,
         spawn_entity,
