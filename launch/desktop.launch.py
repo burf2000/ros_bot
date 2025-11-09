@@ -30,20 +30,20 @@ def generate_launch_description():
 
     use_rviz_arg = DeclareLaunchArgument(
         'rviz',
-        default_value='true',
-        description='Whether to launch RViz2'
+        default_value='false',
+        description='Whether to launch RViz2 (disabled by default - launch separately if needed)'
     )
 
     use_teleop_arg = DeclareLaunchArgument(
         'teleop',
-        default_value='true',
-        description='Whether to launch teleop_twist_keyboard'
+        default_value='false',
+        description='Whether to launch teleop_twist_keyboard (disabled by default, use joystick instead)'
     )
 
     use_joystick_arg = DeclareLaunchArgument(
         'joystick',
         default_value='true',
-        description='Whether to launch joystick control (joystick runs on desktop only)'
+        description='Whether to launch joystick control (enabled by default for mapping)'
     )
 
     rviz_config_arg = DeclareLaunchArgument(

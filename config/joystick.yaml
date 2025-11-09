@@ -9,16 +9,16 @@ teleop_node:
     axis_linear:
       x: 1
     scale_linear:
-      x: 0.5
+      x: 0.25  # Reduced from 0.5 - slower forward speed
     scale_linear_turbo:
-      x: 1.0
+      x: 0.5   # Reduced from 1.0 - slower turbo speed
 
     axis_angular:
       yaw: 0
     scale_angular:
-      yaw: 0.5
+      yaw: 0.5  # Kept the same - turning speed is good
     scale_angular_turbo:
-      yaw: 1.0
+      yaw: 1.0  # Kept the same
 
 
     enable_button: 6

@@ -22,6 +22,157 @@ colcon build --symlink-install
 
 ⚠️ **IMPORTANT**: Always start the robot **BEFORE** launching the desktop stack!
 
+---
+
+## 🗺️ Default Workflow: Map → Navigate
+
+### **Standard Usage (One Launch, Map + Navigate)**
+
+**On Robot (Pi4):**
+```bash
+ssh burf2000@pi4-ros.local
+sudo chmod a+rw /dev/ttyUSB0 /dev/ttyACM0
+ros2 launch ros_bot launch_robot.launch.py
+```
+
+**On Desktop:**
+```bash
+# Launch everything with defaults (SLAM + Nav2 + Joystick, no RViz)
+ros2 launch ros_bot desktop.launch.py
+```
+
+**Default behavior:**
+- ✅ SLAM Toolbox running (fresh map every time)
+- ✅ Nav2 running (ready for goals once map is built)
+- ✅ Joystick enabled
+- ❌ RViz disabled (launch separately if needed)
+- ❌ Keyboard teleop disabled
+
+**Usage:**
+1. **Drive around with joystick** to build map
+2. **Open RViz** in separate terminal: `rviz2 -d ~/dev_ws/src/ros_bot/config/main.rviz`
+3. **Set initial pose** in RViz (2D Pose Estimate)
+4. **Send navigation goals** (2D Goal Pose)
+5. Robot navigates autonomously!
+
+**No need to save/load maps** - fresh map every launch!
+
+---
+
+### **Optional: Saving Your Map (For Persistence)**
+
+If you want to save a map for reuse:
+
+```bash
+# Option 1: Save using SLAM Toolbox service
+ros2 service call /slam_toolbox/serialize_map slam_toolbox/srv/SerializePoseGraph "{filename: '/home/burf2000/dev_ws/my_map'}"
+
+# Option 2: Save using map_server (traditional way)
+ros2 run nav2_map_server map_saver_cli -f ~/dev_ws/my_map
+```
+
+This creates:
+- `my_map.pgm` - Map image
+- `my_map.yaml` - Map metadata
+- `my_map.posegraph` - SLAM graph (for continuing mapping)
+- `my_map.data` - SLAM data (for continuing mapping)
+
+---
+
+### **Workflow 3: Navigation with Saved Map**
+
+Use this when you have a map and want autonomous navigation.
+
+**First, update SLAM config to use your saved map:**
+```bash
+# Edit the SLAM config
+nano ~/dev_ws/src/ros_bot/config/mapper_params_online_async.yaml
+
+# Uncomment and set the map file:
+# map_file_name: /home/burf2000/dev_ws/my_map
+# map_start_at_dock: true
+
+# Or change mode to localization:
+# mode: localization  # Instead of mapping
+```
+
+**Then rebuild:**
+```bash
+cd ~/dev_ws
+colcon build --packages-select ros_bot --symlink-install
+source install/setup.bash
+```
+
+**Launch with Nav2:**
+```bash
+# Full navigation stack (SLAM in localization mode + Nav2)
+ros2 launch ros_bot desktop.launch.py slam:=true nav2:=true joystick:=true teleop:=false rviz:=true
+```
+
+**Set initial pose in RViz:**
+1. Click "2D Pose Estimate" button
+2. Click on map where robot is
+3. Drag to set orientation
+
+**Send navigation goals:**
+1. Click "2D Goal Pose" button
+2. Click destination on map
+3. Robot navigates autonomously!
+
+---
+
+## 📋 Quick Reference: Desktop Launch Commands
+
+| Task | Command |
+|------|---------|
+| **🚀 Default workflow** (map + navigate) | `ros2 launch ros_bot desktop.launch.py` |
+| **With RViz** (to see the map) | `ros2 launch ros_bot desktop.launch.py rviz:=true` |
+| **Just mapping** (no Nav2) | `ros2 launch ros_bot desktop.launch.py nav2:=false` |
+| **Keyboard instead of joystick** | `ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true` |
+| **Save map** | `ros2 service call /slam_toolbox/serialize_map slam_toolbox/srv/SerializePoseGraph "{filename: '/home/burf2000/dev_ws/my_map'}"` |
+| **Just visualization** | `ros2 launch ros_bot desktop.launch.py slam:=false nav2:=false rviz:=true` |
+
+**Default parameters:** `slam:=true`, `nav2:=true`, `joystick:=true`, `rviz:=false`, `teleop:=false`
+
+**Robot always runs the same command:**
+```bash
+ros2 launch ros_bot launch_robot.launch.py
+```
+
+---
+
+## 🎮 Joystick Controls
+
+**How to use:**
+1. **Hold Enable Button** (Button 6 - usually LB/L1 shoulder button)
+2. **Move left stick** to drive:
+   - **Vertical** (Axis 1): Forward/Backward (0.25 m/s normal, 0.5 m/s turbo)
+   - **Horizontal** (Axis 0): Turn left/right (0.5 rad/s normal, 1.0 rad/s turbo)
+3. **Hold Turbo Button** (Button 7 - usually RB/R1) for faster speeds
+
+**Dead Man's Switch:** You MUST hold the enable button to move (safety feature!)
+
+**Test your joystick:**
+```bash
+# See raw joystick data
+ros2 topic echo /joy
+
+# See velocity commands being sent
+ros2 topic echo /cmd_vel_joy
+```
+
+**Keyboard Controls** (if using `teleop:=true`):
+- `i` - Forward
+- `,` - Backward
+- `j` - Turn left
+- `l` - Turn right
+- `k` - Stop
+- `q/z` - Increase/decrease speeds
+
+---
+
+
+
 ### Step 1: SSH into the Robot
 ```bash
 ssh burf2000@pi4-ros.local
@@ -45,23 +196,34 @@ Wait until you see: `[controller_manager]: Loaded diff_cont` and `[ekf_filter_no
 
 ### Step 3: Launch Desktop (On Your Computer)
 
-**🆕 Easy Way (Everything in One Command):**
+**🚀 Standard Workflow (Map + Navigate):**
 ```bash
-# Launch SLAM + Nav2 + RViz + Joystick + Keyboard Teleop (full stack)
+# Launch with defaults: SLAM + Nav2 + Joystick (no RViz)
 ros2 launch ros_bot desktop.launch.py
+```
 
-# If no joystick connected, disable it
-ros2 launch ros_bot desktop.launch.py joystick:=false
+**Then open RViz separately (optional):**
+```bash
+rviz2 -d ~/dev_ws/src/ros_bot/config/main.rviz
+```
 
-# Skip RViz if running in VM (graphics issues)
-ros2 launch ros_bot desktop.launch.py rviz:=false
+**Workflow:**
+1. Drive around with joystick to build map
+2. Once happy with map, send Nav2 goals in RViz
+3. Robot navigates autonomously!
 
-# Optional: Customize what launches
-ros2 launch ros_bot desktop.launch.py slam:=true nav2:=true rviz:=true
-ros2 launch ros_bot desktop.launch.py slam:=false nav2:=false  # Just visualization
-ros2 launch ros_bot desktop.launch.py rviz_config:=drive_bot.rviz  # Different RViz config
+**Optional Variants:**
+```bash
+# With RViz included
+ros2 launch ros_bot desktop.launch.py rviz:=true
 
-# Or just visualization (no SLAM/Nav2) - lightweight
+# No joystick (use keyboard instead)
+ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true
+
+# Just mapping (no Nav2)
+ros2 launch ros_bot desktop.launch.py nav2:=false
+
+# Just visualization
 ros2 launch ros_bot desktop_viz.launch.py
 ```
 
@@ -129,22 +291,24 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/di
 
 ## 🧩 Launch Shortcuts
 
-### Desktop (SLAM + Nav2 + Visualization)
+### Desktop (SLAM + Nav2 + Joystick)
 ```bash
-# Full stack - SLAM + Nav2 + RViz + Joystick + Keyboard Teleop
+# 🚀 Default: Map + Navigate workflow (SLAM + Nav2 + Joystick, no RViz)
 ros2 launch ros_bot desktop.launch.py
 
-# Without joystick (if not connected)
-ros2 launch ros_bot desktop.launch.py joystick:=false
+# Then open RViz separately:
+rviz2 -d ~/dev_ws/src/ros_bot/config/main.rviz
 
-# Without RViz (for VMs with graphics issues)
-ros2 launch ros_bot desktop.launch.py rviz:=false
+# Or include RViz in launch:
+ros2 launch ros_bot desktop.launch.py rviz:=true
 
-# Customized launch
-ros2 launch ros_bot desktop.launch.py slam:=true nav2:=false  # SLAM only
-ros2 launch ros_bot desktop.launch.py rviz_config:=BOW.rviz    # Custom RViz config
+# Keyboard instead of joystick:
+ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true
 
-# Visualization only (lightweight)
+# Just mapping (no Nav2):
+ros2 launch ros_bot desktop.launch.py nav2:=false
+
+# Visualization only (lightweight):
 ros2 launch ros_bot desktop_viz.launch.py
 ```
 
