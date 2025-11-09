@@ -28,12 +28,6 @@ def generate_launch_description():
                 )]), launch_arguments={'use_sim_time': 'false', 'use_ros2_control': 'true'}.items()
     )
 
-    joystick = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','joystick.launch.py'
-                )])
-    )
-
     # Robot Localization EKF - fuses wheel odometry + IMU
     ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
     robot_localization_node = Node(
@@ -133,7 +127,6 @@ def generate_launch_description():
     # Launch them all!
     return LaunchDescription([
         rsp,
-        joystick,
         twist_mux,
         lidar,
         imu,

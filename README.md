@@ -20,25 +20,52 @@ colcon build --symlink-install
 
 ## 🤖 Running the Robot
 
-### SSH into the Robot
+⚠️ **IMPORTANT**: Always start the robot **BEFORE** launching the desktop stack!
+
+### Step 1: SSH into the Robot
 ```bash
 ssh burf2000@pi4-ros.local
 ```
 
-### On the Robot
+### Step 2: Launch Robot (On Pi4)
 ```bash
-sudo chmod a+rw /dev/ttyUSB0
-sudo chmod a+rw /dev/ttyACM0
+sudo chmod a+rw /dev/ttyUSB0 /dev/ttyACM0
 ros2 launch ros_bot launch_robot.launch.py
-
-ros2 launch mpu6050driver mpu6050driver_launch.py
-ros2 run xv_11_driver xv_11_driver --ros-args -p frame_id:=laser_frame -p port:=/dev/ttyACM0
-ros2 launch ros_bot camera.launch
-# OR
-ros2 run v4l2_camera v4l2_camera_node --ros-args -p image_size:="[640,480]" -p camera_frame_id:=camera_link_optical
 ```
 
-### On the Desktop
+This launches:
+- ✅ Wheel encoders (diff_drive_controller)
+- ✅ IMU (mpu6050driver)
+- ✅ LiDAR (xv_11_driver)
+- ✅ Camera
+- ✅ **robot_localization EKF** (sensor fusion)
+- ✅ TF publishers (`odom → base_footprint`)
+
+Wait until you see: `[controller_manager]: Loaded diff_cont` and `[ekf_filter_node]: ...`
+
+### Step 3: Launch Desktop (On Your Computer)
+
+**🆕 Easy Way (Everything in One Command):**
+```bash
+# Launch SLAM + Nav2 + RViz + Joystick + Keyboard Teleop (full stack)
+ros2 launch ros_bot desktop.launch.py
+
+# If no joystick connected, disable it
+ros2 launch ros_bot desktop.launch.py joystick:=false
+
+# Skip RViz if running in VM (graphics issues)
+ros2 launch ros_bot desktop.launch.py rviz:=false
+
+# Optional: Customize what launches
+ros2 launch ros_bot desktop.launch.py slam:=true nav2:=true rviz:=true
+ros2 launch ros_bot desktop.launch.py slam:=false nav2:=false  # Just visualization
+ros2 launch ros_bot desktop.launch.py rviz_config:=drive_bot.rviz  # Different RViz config
+
+# Or just visualization (no SLAM/Nav2) - lightweight
+ros2 launch ros_bot desktop_viz.launch.py
+```
+
+**📋 Manual Way (Individual Components):**
 ```bash
 ros2 launch slam_toolbox online_async_launch.py   slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml   use_sim_time:=false
 
@@ -102,6 +129,25 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/di
 
 ## 🧩 Launch Shortcuts
 
+### Desktop (SLAM + Nav2 + Visualization)
+```bash
+# Full stack - SLAM + Nav2 + RViz + Joystick + Keyboard Teleop
+ros2 launch ros_bot desktop.launch.py
+
+# Without joystick (if not connected)
+ros2 launch ros_bot desktop.launch.py joystick:=false
+
+# Without RViz (for VMs with graphics issues)
+ros2 launch ros_bot desktop.launch.py rviz:=false
+
+# Customized launch
+ros2 launch ros_bot desktop.launch.py slam:=true nav2:=false  # SLAM only
+ros2 launch ros_bot desktop.launch.py rviz_config:=BOW.rviz    # Custom RViz config
+
+# Visualization only (lightweight)
+ros2 launch ros_bot desktop_viz.launch.py
+```
+
 ### Simulation
 ```bash
 ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
@@ -141,6 +187,13 @@ ros2 topic echo /cmd_vel
 ---
 
 ## 🧰 Installation & Setup
+
+### Desktop Dependencies
+```bash
+sudo apt install ros-humble-slam-toolbox ros-humble-navigation2 ros-humble-nav2-bringup
+sudo apt install ros-humble-robot-localization
+sudo apt install ros-humble-teleop-twist-keyboard
+```
 
 ### Compression Tools
 ```bash
