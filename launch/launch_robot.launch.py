@@ -58,6 +58,14 @@ def generate_launch_description():
                 )])
     )
 
+    # IMU unit converter: converts angular_velocity from degrees/sec to radians/sec
+    imu_converter = Node(
+        package='ros_bot',
+        executable='imu_unit_converter.py',
+        name='imu_unit_converter',
+        output='screen'
+    )
+
     camera = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(package_name),'launch','camera.launch.py'
@@ -130,6 +138,7 @@ def generate_launch_description():
         twist_mux,
         lidar,
         imu,
+        imu_converter,
         camera,
         robot_localization_node,
         delayed_controller_manager,

@@ -63,12 +63,13 @@ slam_toolbox:
     loop_search_space_smear_deviation: 0.03
 
     # Scan Matcher Parameters
-    # Reduced penalties = trust odometry less, trust scan matching more
-    distance_variance_penalty: 0.3      # Reduced from 0.5
-    angle_variance_penalty: 0.5         # Reduced from 1.0 - less trust in odometry angles
+    # VERY LOW penalties = trust odometry minimally, rely almost entirely on scan matching
+    # Calibration test showed 86% wheel slip during rotation!
+    distance_variance_penalty: 0.1      # Minimal trust in odometry position
+    angle_variance_penalty: 0.05        # Almost no trust in odometry angles (86% slip!)
 
     fine_search_angle_offset: 0.00349
-    coarse_search_angle_offset: 0.524     # Increased from 0.349 (20°) to 0.524 (30°) - search wider angles
+    coarse_search_angle_offset: 0.785     # 45° search (was 30°) - odometry rotation very unreliable
     coarse_angle_resolution: 0.0349
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
