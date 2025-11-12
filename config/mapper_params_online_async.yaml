@@ -39,17 +39,17 @@ slam_toolbox:
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.15  # Reduced from 0.5 - update map more frequently
-    minimum_travel_heading: 0.15   # Reduced from 0.5 (28°) to 0.15 (~8.5°) - better rotation tracking
+    minimum_travel_distance: 0.25  # Increased - update map less frequently to reduce noise
+    minimum_travel_heading: 0.25   # Increased - require more rotation before updating (~14°)
     scan_buffer_size: 10
     scan_buffer_maximum_scan_distance: 10.0
-    link_match_minimum_response_fine: 0.1
+    link_match_minimum_response_fine: 0.2  # Increased - require better scan match quality
     link_scan_maximum_distance: 1.5
     loop_search_maximum_distance: 3.0
-    do_loop_closing: true 
-    loop_match_minimum_chain_size: 10           
-    loop_match_maximum_variance_coarse: 3.0  
-    loop_match_minimum_response_coarse: 0.35    
+    do_loop_closing: true
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.35
     loop_match_minimum_response_fine: 0.45
 
     # Correlation Parameters - Correlation Parameters
@@ -63,13 +63,13 @@ slam_toolbox:
     loop_search_space_smear_deviation: 0.03
 
     # Scan Matcher Parameters
-    # VERY LOW penalties = trust odometry minimally, rely almost entirely on scan matching
-    # Calibration test showed 86% wheel slip during rotation!
-    distance_variance_penalty: 0.1      # Minimal trust in odometry position
-    angle_variance_penalty: 0.05        # Almost no trust in odometry angles (86% slip!)
+    # Higher penalties = trust odometry more, rely less on scan matching alone
+    # Odometry rotation calibrated and accurate now
+    distance_variance_penalty: 0.3      # Moderate trust in odometry position
+    angle_variance_penalty: 0.5         # Good trust in odometry angles (calibrated!)
 
     fine_search_angle_offset: 0.00349
-    coarse_search_angle_offset: 0.785     # 45° search (was 30°) - odometry rotation very unreliable
+    coarse_search_angle_offset: 0.349     # 20° search - odometry is now calibrated
     coarse_angle_resolution: 0.0349
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5

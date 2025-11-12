@@ -1,0 +1,41 @@
+scan_to_scan_filter_chain:
+  ros__parameters:
+    # Input/output topics
+    # Input: /scan_raw (from lidar)
+    # Output: /scan (to SLAM and Nav2)
+
+    filter_chain:
+      # Remove points that are too close (noise from robot body)
+      - name: range_filter
+        type: laser_filters/LaserScanRangeFilter
+        params:
+          use_message_range_limits: false
+          lower_threshold: 0.1     # Min range (meters)
+          upper_threshold: 5.0     # Max range (meters)
+          lower_replacement_value: .nan
+          upper_replacement_value: .nan
+
+      # Remove isolated points (likely noise/reflections)
+      - name: speckle_filter
+        type: laser_filters/LaserScanSpeckleFilter
+        params:
+          filter_type: 1           # 0=Range, 1=Euclidean distance
+          max_range: 5.0           # Max laser range
+          max_range_difference: 0.1  # Remove points >10cm from neighbors
+          filter_window: 2         # Check 2 points on each side
+
+      # Remove outliers using statistical filtering
+      - name: median_filter
+        type: laser_filters/LaserScanMedianFilter
+        params:
+          window_size: 5           # Median of 5 consecutive points
+          max_range: 5.0
+
+      # Remove single-scan anomalies (temporal filter)
+      - name: temporal_filter
+        type: laser_filters/LaserScanTemporalFilter
+        params:
+          range_comparison: 0      # 0=less than, 1=equal to, 2=greater than
+          temporal_window: 3       # Average over 3 scans
+          temporal_window_type: 0  # 0=fixed, 1=variable
+          max_range: 5.0
