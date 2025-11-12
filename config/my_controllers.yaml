@@ -17,19 +17,13 @@ diff_cont:
 
     left_wheel_names: ['left_wheel_joint']
     right_wheel_names: ['right_wheel_joint']
-
-    # Wheel parameters
     wheel_separation: 0.280
-    # NOTE: wheel_radius scaled to compensate for enc_counts_per_rev=230
-    # Physical wheel radius is 0.0325m, but Arduino appears to send fewer counts
-    # Empirically determined: 230 enc_counts gives correct rotation
-    # Scale factor: 1950/230 = 8.48, so wheel_radius = 0.0325 * 8.48 = 0.2756m
-    wheel_radius: 0.2756
+    wheel_radius: 0.0325
 
     odom_frame_id: odom
-    # Rotation calibrated! Odometry is now accurate
-    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]    # yaw: much more certain now
-    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]   # yaw_dot: much more certain now
+    # MASSIVE wheel slip during rotation on smooth floor (test showed 86% slip!)
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 1.0]    # yaw: very uncertain
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 1.0]   # yaw_dot: very uncertain
     open_loop: false
     enable_odom_tf: false  # EKF will publish odom->base_footprint transform
 

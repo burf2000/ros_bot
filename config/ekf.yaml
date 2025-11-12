@@ -34,10 +34,10 @@ ekf_filter_node:
     # Wheel Odometry (odom0)
     # ------------------------
     odom0: /diff_cont/odom
-    odom0_config: [false, false, false,  # x, y, z (position) - let EKF integrate from velocity
-                   false, false, true,   # roll, pitch, yaw (orientation) - USE wheel yaw (calibrated!)
+    odom0_config: [false, false, false,  # x, y, z (position)
+                   false, false, false,  # roll, pitch, yaw (orientation) - DON'T use wheel odom for orientation (slips!)
                    true,  true,  false,  # x_dot, y_dot, z_dot (linear velocity) - use wheels for linear velocity
-                   false, false, false,  # roll_dot, pitch_dot, yaw_dot - Angular velocity from IMU instead
+                   false, false, true,   # roll_dot, pitch_dot, yaw_dot - Use wheel angular velocity
                    false, false, false]  # x_ddot, y_ddot, z_ddot (linear acceleration)
 
     odom0_differential: false
