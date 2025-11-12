@@ -18,15 +18,13 @@ diff_cont:
     left_wheel_names: ['left_wheel_joint']
     right_wheel_names: ['right_wheel_joint']
 
-    # Physical wheel parameters (measured/verified)
-    wheel_separation: 0.280  # 280mm center-to-center distance between wheels
-    wheel_radius: 0.0325     # 32.5mm radius (65mm diameter wheels)
-
-    # Calibration multipliers - compensate for odometry calculation discrepancy
-    # With correct enc_counts_per_rev=1950, rotation was 8.1x too low
-    # These multipliers scale the effective wheel radius in calculations
-    left_wheel_radius_multiplier: 8.48
-    right_wheel_radius_multiplier: 8.48
+    # Wheel parameters
+    wheel_separation: 0.280
+    # NOTE: wheel_radius scaled to compensate for enc_counts_per_rev=230
+    # Physical wheel radius is 0.0325m, but Arduino appears to send fewer counts
+    # Empirically determined: 230 enc_counts gives correct rotation
+    # Scale factor: 1950/230 = 8.48, so wheel_radius = 0.0325 * 8.48 = 0.2756m
+    wheel_radius: 0.2756
 
     odom_frame_id: odom
     # Rotation calibrated! Odometry is now accurate
