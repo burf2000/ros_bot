@@ -33,6 +33,10 @@ def generate_launch_description():
             package='laser_filters',
             executable='scan_to_scan_filter_chain',
             output='screen',
-            parameters=[laser_filter_config]
+            parameters=[laser_filter_config],
+            remappings=[
+                ('scan', 'scan_raw'),           # Input: subscribe to /scan_raw
+                ('scan_filtered', 'scan')       # Output: publish to /scan
+            ]
         )
     ])

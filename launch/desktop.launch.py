@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
@@ -104,6 +104,12 @@ def generate_launch_description():
         condition=IfCondition(use_nav2)
     )
 
+    # Delay Nav2 startup to give SLAM time to create the map frame
+    delayed_nav2 = TimerAction(
+        period=5.0,  # Wait 5 seconds for SLAM to initialize
+        actions=[nav2_bringup]
+    )
+
     # RViz2 launch
     rviz_config_file = [
         os.path.join(get_package_share_directory(package_name), 'config', ''),
@@ -153,7 +159,7 @@ def generate_launch_description():
         use_joystick_arg,
         rviz_config_arg,
         slam_toolbox,
-        nav2_bringup,
+        delayed_nav2,  # Nav2 starts 5 seconds after SLAM
         rviz2,
         teleop_keyboard,
         joystick
