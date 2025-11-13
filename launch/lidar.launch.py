@@ -23,20 +23,19 @@ def generate_launch_description():
                 'frame_id': 'laser_frame'
             }],
             remappings=[
-                ('/scan', '/scan_raw')  # Output raw data
+                ('scan', 'scan_raw')  # Lidar outputs to /scan_raw
             ]
         ),
 
-        # Laser scan filter cleans up noise
-        # Reads /scan_raw, outputs /scan (for SLAM and Nav2)
+        # Laser scan filter: reads /scan_raw, outputs /scan
         Node(
             package='laser_filters',
             executable='scan_to_scan_filter_chain',
             output='screen',
             parameters=[laser_filter_config],
             remappings=[
-                ('scan', 'scan_raw'),           # Input: subscribe to /scan_raw
-                ('scan_filtered', 'scan')       # Output: publish to /scan
+                ('scan', 'scan_raw'),          # Input: read from /scan_raw
+                ('scan_filtered', 'scan')      # Output: publish to /scan
             ]
         )
     ])
