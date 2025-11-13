@@ -1,20 +1,16 @@
 scan_to_scan_filter_chain:
   ros__parameters:
-    # Simplified laser filter configuration
-    scan_filter_chain:
-      # Remove points outside valid range
+    filter_type: "scan_to_scan_filter_chain"
+    filter_chain:
       - name: range
-        type: laser_filters/LaserScanRangeFilter
+        type: "laser_filters/LaserScanRangeFilter"
         params:
           use_message_range_limits: false
           lower_threshold: 0.1
           upper_threshold: 5.0
-          lower_replacement_value: .nan
-          upper_replacement_value: .nan
 
-      # Remove isolated noise points
       - name: speckle
-        type: laser_filters/LaserScanSpeckleFilter
+        type: "laser_filters/LaserScanSpeckleFilter"
         params:
           filter_type: 1
           max_range: 5.0
