@@ -2,11 +2,11 @@
 ekf_filter_node:
   ros__parameters:
     # The frequency, in Hz, at which the filter will output a position estimate
-    # Reduced to 10Hz for stable performance on Raspberry Pi 4
-    frequency: 10.0
+    # Reduced to 5Hz for rock-solid performance on Raspberry Pi 4
+    frequency: 5.0
 
     # The period, in seconds, after which we consider a sensor to have timed out
-    sensor_timeout: 0.3
+    sensor_timeout: 0.5
 
     # If true, will publish the transform from the world_frame to the base_link_frame
     two_d_mode: true
