@@ -38,7 +38,7 @@ install(
 )
 
 install(
-  PROGRAMS scripts/imu_unit_converter.py
+  PROGRAMS scripts/imu_unit_converter.py scripts/scan_cleaner.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

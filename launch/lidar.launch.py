@@ -13,8 +13,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        # Lidar publishes directly to /scan
-        # Laser filtering temporarily disabled until config is fixed
+        # XV-11 Lidar Driver - publishes to /scan
         Node(
             package='xv_11_driver',
             executable='xv_11_driver',
@@ -22,6 +21,20 @@ def generate_launch_description():
             parameters=[{
                 'port': '/dev/ttyACM0',
                 'frame_id': 'laser_frame'
+            }]
+        ),
+
+        # Scan Cleaner - filters noisy data (0.053m errors) before SLAM
+        # Subscribes to /scan, publishes to /scan/filtered
+        Node(
+            package='ros_bot',
+            executable='scan_cleaner.py',
+            output='screen',
+            parameters=[{
+                'min_range': 0.15,  # Filter out <0.15m (includes 0.053m XV-11 noise)
+                'max_range': 5.0,
+                'input_topic': '/scan',
+                'output_topic': '/scan/filtered'
             }]
         )
     ])
