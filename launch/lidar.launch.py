@@ -13,7 +13,8 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        # Lidar publishes raw scan data to /scan_raw
+        # Lidar publishes directly to /scan
+        # Laser filtering temporarily disabled until config is fixed
         Node(
             package='xv_11_driver',
             executable='xv_11_driver',
@@ -21,21 +22,6 @@ def generate_launch_description():
             parameters=[{
                 'port': '/dev/ttyACM0',
                 'frame_id': 'laser_frame'
-            }],
-            remappings=[
-                ('scan', 'scan_raw')  # Lidar outputs to /scan_raw
-            ]
-        ),
-
-        # Laser scan filter: reads /scan_raw, outputs /scan
-        Node(
-            package='laser_filters',
-            executable='scan_to_scan_filter_chain',
-            output='screen',
-            parameters=[laser_filter_config],
-            remappings=[
-                ('scan', 'scan_raw'),          # Input: read from /scan_raw
-                ('scan_filtered', 'scan')      # Output: publish to /scan
-            ]
+            }]
         )
     ])
