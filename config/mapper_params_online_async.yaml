@@ -24,13 +24,13 @@ slam_toolbox:
     map_start_at_dock: false  # Set to false to create a new map
 
     debug_logging: false
-    throttle_scans: 1
+    throttle_scans: 1  # Process every scan - don't skip any at 5Hz
     transform_publish_period: 0.02 #if 0 never publishes odometry
     map_update_interval: 5.0
     resolution: 0.05
     min_laser_range: 0.2  # Increased from 0.1 to filter out 0.053m noise from robot body/reflections
     max_laser_range: 5.0 #for rastering images
-    minimum_time_interval: 0.5
+    minimum_time_interval: 0.25  # Reduced from 0.5s - at 5Hz lidar (200ms/scan), update every 1-2 scans
     transform_timeout: 0.2
     tf_buffer_duration: 30.
     stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
