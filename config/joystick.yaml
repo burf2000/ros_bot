@@ -16,7 +16,7 @@ teleop_node:
     axis_angular:
       yaw: 0
     scale_angular:
-      yaw: 0.35  # Reduced from 1.0 - safe rotation for 5Hz lidar
+      yaw: 0.4  # Reduced from 1.0 - safe rotation for 5Hz lidar
     scale_angular_turbo:
       yaw: 0.5   # Reduced from 2.0 - match controller limit (0.5 rad/s = 28°/s)
 
