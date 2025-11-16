@@ -2,8 +2,8 @@
 ekf_filter_node:
   ros__parameters:
     # The frequency, in Hz, at which the filter will output a position estimate
-    # Reduced to 5Hz for rock-solid performance on Raspberry Pi 4
-    frequency: 5.0
+    # Reduced to 2.5Hz - Pi4 struggles with 5Hz + scan_cleaner processing
+    frequency: 2.5
 
     # The period, in seconds, after which we consider a sensor to have timed out
     sensor_timeout: 0.5
