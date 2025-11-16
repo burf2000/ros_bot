@@ -212,7 +212,7 @@ ros2 topic hz /scan
 
 # Should be ~10Hz. If lower:
 # 1. Check CPU usage on Pi
-# 2. Verify UART baud rate is 230400
+# 2. Verify UART baud rate is 230400 (parameter: port_baudrate, not serial_baudrate)
 # 3. Check for interference
 ```
 

@@ -19,7 +19,7 @@ def generate_launch_description():
                 'topic_name': 'scan',
                 'frame_id': 'laser_frame',
                 'port_name': '/dev/ttyAMA0',  # UART on Pi GPIO 14/15 (try /dev/ttyS0 if this doesn't work)
-                'serial_baudrate': 230400,
+                'port_baudrate': 230400,
                 'laser_scan_dir': True,  # Set to False if scan direction is reversed
                 'enable_angle_crop_func': False,
                 'angle_crop_min': 0.0,
