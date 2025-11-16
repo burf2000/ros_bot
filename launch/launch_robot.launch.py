@@ -46,9 +46,12 @@ def generate_launch_description():
             remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
         )
 
+    # Lidar launch - choose based on your hardware:
+    # - 'lidar.launch.py' for XV-11 Neato (old)
+    # - 'lidar_ld06.launch.py' for OKDO LD06 HAT (new)
     lidar = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','lidar.launch.py'
+                    get_package_share_directory(package_name),'launch','lidar_ld06.launch.py'  # CHANGED: Using LD06
                 )])
     )
 
