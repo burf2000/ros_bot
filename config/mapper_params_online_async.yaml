@@ -13,7 +13,8 @@ slam_toolbox:
     odom_frame: odom
     map_frame: map
     base_frame: base_footprint
-    scan_topic: /scan  # LD06 is clean enough, no filter needed
+    scan_topic: /scan  # LD06 publishes at 10Hz
+    scan_queue_size: 20  # Increased from default 1 - handle 10Hz LD06 (2 seconds of scans)
     mode: mapping #localization
 
     # if you'd like to immediately start continuing a map at a given pose
@@ -24,15 +25,15 @@ slam_toolbox:
     map_start_at_dock: false  # Set to false to create a new map
 
     debug_logging: false
-    throttle_scans: 1  # Process every scan - LD06 is 7-10Hz, still process all
+    throttle_scans: 1  # Process all throttled scans (already throttled to 5Hz by topic_tools)
     transform_publish_period: 0.02 #if 0 never publishes odometry
     map_update_interval: 5.0
     resolution: 0.05
     min_laser_range: 0.05  # LD06 min is 2cm, filter below 5cm for safety
     max_laser_range: 12.0  # LD06 max range is 12m (was 5.0 for XV-11)
-    minimum_time_interval: 0.2  # Reduced from 0.25s - at 10Hz lidar (100ms/scan), update every 2 scans
-    transform_timeout: 0.2
-    tf_buffer_duration: 30.
+    minimum_time_interval: 0.2  # At 10Hz lidar with throttle=2, effective 5Hz (200ms/scan)
+    transform_timeout: 1.0  # Increased from 0.5 - WiFi latency between robot and desktop
+    tf_buffer_duration: 60.  # Increased from 30 - hold older transforms for delayed scans
     stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
     enable_interactive_mode: true
 
@@ -41,7 +42,7 @@ slam_toolbox:
     use_scan_barycenter: true
     minimum_travel_distance: 0.15  # Reduced from 0.5 - update map more frequently
     minimum_travel_heading: 0.15   # Reduced from 0.5 (28°) to 0.15 (~8.5°) - better rotation tracking
-    scan_buffer_size: 10
+    scan_buffer_size: 25  # Increased from 10 - handle faster scan rate (10Hz * 2.5s = 25 scans)
     scan_buffer_maximum_scan_distance: 12.0  # Increased from 10.0 - LD06 has 12m range
     link_match_minimum_response_fine: 0.3  # Increased from 0.2 - LD06 is cleaner, can be more selective
     link_scan_maximum_distance: 1.5
