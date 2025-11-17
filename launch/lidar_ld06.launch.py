@@ -9,6 +9,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         # OKDO Lidar HAT (LD06) - publishes to /scan
+        # LD06 is much cleaner than XV-11, no filter needed!
         Node(
             package='ldlidar_stl_ros2',
             executable='ldlidar_stl_ros2_node',
@@ -24,20 +25,6 @@ def generate_launch_description():
                 'enable_angle_crop_func': False,
                 'angle_crop_min': 0.0,
                 'angle_crop_max': 0.0,
-            }]
-        ),
-
-        # Scan Cleaner - filters any remaining noise
-        # Even though LD06 is much cleaner than XV-11, still useful for safety
-        Node(
-            package='ros_bot',
-            executable='scan_cleaner.py',
-            output='screen',
-            parameters=[{
-                'min_range': 0.05,  # LD06 min is 2cm, but filter below 5cm for safety
-                'max_range': 12.0,  # LD06 max range
-                'input_topic': '/scan',
-                'output_topic': '/scan/filtered'
             }]
         )
     ])

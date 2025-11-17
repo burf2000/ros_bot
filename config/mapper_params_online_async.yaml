@@ -13,7 +13,7 @@ slam_toolbox:
     odom_frame: odom
     map_frame: map
     base_frame: base_footprint
-    scan_topic: /scan/filtered  # Use filtered scan to remove XV-11 noise
+    scan_topic: /scan  # LD06 is clean enough, no filter needed
     mode: mapping #localization
 
     # if you'd like to immediately start continuing a map at a given pose
@@ -24,13 +24,13 @@ slam_toolbox:
     map_start_at_dock: false  # Set to false to create a new map
 
     debug_logging: false
-    throttle_scans: 1  # Process every scan - don't skip any at 5Hz
+    throttle_scans: 1  # Process every scan - LD06 is 7-10Hz, still process all
     transform_publish_period: 0.02 #if 0 never publishes odometry
     map_update_interval: 5.0
     resolution: 0.05
-    min_laser_range: 0.2  # Increased from 0.1 to filter out 0.053m noise from robot body/reflections
-    max_laser_range: 5.0 #for rastering images
-    minimum_time_interval: 0.25  # Reduced from 0.5s - at 5Hz lidar (200ms/scan), update every 1-2 scans
+    min_laser_range: 0.05  # LD06 min is 2cm, filter below 5cm for safety
+    max_laser_range: 12.0  # LD06 max range is 12m (was 5.0 for XV-11)
+    minimum_time_interval: 0.2  # Reduced from 0.25s - at 10Hz lidar (100ms/scan), update every 2 scans
     transform_timeout: 0.2
     tf_buffer_duration: 30.
     stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
@@ -42,10 +42,10 @@ slam_toolbox:
     minimum_travel_distance: 0.15  # Reduced from 0.5 - update map more frequently
     minimum_travel_heading: 0.15   # Reduced from 0.5 (28°) to 0.15 (~8.5°) - better rotation tracking
     scan_buffer_size: 10
-    scan_buffer_maximum_scan_distance: 10.0
-    link_match_minimum_response_fine: 0.2  # Increased from 0.1 - be more selective with noisy scans
+    scan_buffer_maximum_scan_distance: 12.0  # Increased from 10.0 - LD06 has 12m range
+    link_match_minimum_response_fine: 0.3  # Increased from 0.2 - LD06 is cleaner, can be more selective
     link_scan_maximum_distance: 1.5
-    loop_search_maximum_distance: 3.0
+    loop_search_maximum_distance: 6.0  # Increased from 3.0 - LD06 has much better long-range accuracy
     do_loop_closing: true
     loop_match_minimum_chain_size: 10
     loop_match_maximum_variance_coarse: 3.0
