@@ -20,6 +20,8 @@ diff_cont:
     wheel_separation: 0.280
     wheel_radius: 0.0325
 
+    use_stamped_vel: false  # Use standard Twist messages on cmd_vel_unstamped
+
     odom_frame_id: odom
     # MASSIVE wheel slip during rotation on smooth floor (test showed 86% slip!)
     pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 1.0]    # yaw: very uncertain

@@ -63,7 +63,7 @@ ros2 launch ros_bot desktop.launch.py  # In separate terminal
 ### Two-Machine Deployment Model
 
 **Raspberry Pi 4 (Robot-Side)** - `launch_robot.launch.py`:
-- Hardware drivers: LiDAR (XV-11), IMU (MPU6050), Camera, Arduino (motors/encoders)
+- Hardware drivers: LiDAR (Okdo Lidar), IMU (MPU6050), Camera, Arduino (motors/encoders)
 - ROS2 Control: DiffDriveController + JointStateBroadcaster
 - Robot Localization EKF: Fuses wheel odometry + IMU → `/odom` frame
 - Twist Mux: Arbitrates joystick vs Nav2 commands
@@ -97,6 +97,38 @@ base_link → chassis, wheels, sensors
 7. **SLAM Toolbox** uses `/scan` + `/odom` TF → updates `/map` + `map → odom` TF
 8. **Nav2** uses updated map → replans path (closed loop)
 
+### Command Velocity Architecture
+
+The robot uses **standard unstamped Twist messages** on `/cmd_vel` for maximum compatibility. Twist Mux (running on robot) arbitrates between multiple command sources:
+
+**Velocity Command Flow:**
+```
+/cmd_vel (Twist, priority 5) ──┐
+/cmd_vel_nav (Twist, priority 10) ──┼──> Twist Mux ──> /diff_cont/cmd_vel_unstamped ──> DiffDriveController
+/cmd_vel_tracker (Twist, priority 20) ──┤
+/cmd_vel_joy (Twist, priority 100) ──┘
+```
+
+**Priority levels (higher = more important):**
+- Priority 100: Joystick (dead man's switch for safety)
+- Priority 20: Tracker
+- Priority 10: Nav2 autonomous navigation
+- Priority 5: General teleop `/cmd_vel`
+
+**To manually control the robot:**
+```bash
+# Standard teleop (works even without desktop running)
+ros2 topic pub /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.2}, angular: {z: 0.5}}"
+
+# Or use keyboard teleop
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+**Key setting in `my_controllers.yaml`:**
+```yaml
+use_stamped_vel: false  # DiffDriveController subscribes to unstamped Twist messages
+```
+
 ## Key Configuration Files
 
 All configs in `config/` directory:
@@ -125,7 +157,7 @@ See `Config.md` for comprehensive parameter reference.
 - Connected via Arduino serial: `/dev/ttyUSB0` @ 57600 baud
 
 **Sensors:**
-- LiDAR: XV-11 Neato on `/dev/ttyACM0` → publishes `/scan`
+- LiDAR: Okdo Lidar on `/dev/ttyACM0` → publishes `/scan` at ~10Hz
 - IMU: MPU6050 via I2C → publishes `/imu` (degrees/sec - non-standard!)
 - Camera: USB camera via v4l2
 
@@ -345,7 +377,7 @@ Default speeds (in `config/joystick.yaml`):
 - Sim: `gz_ros2_control/GazeboSimSystem` (Gazebo physics)
 
 **Sensor Plugins:**
-- Real: External drivers (xv_11_driver, mpu6050driver, v4l2_camera)
+- Real: External drivers (okdo_lidar, mpu6050driver, v4l2_camera)
 - Sim: Gazebo plugins (gpu_lidar, imu_sensor, camera)
 
 **Launch Detection:**
@@ -364,7 +396,7 @@ Default speeds (in `config/joystick.yaml`):
 **Robot (Pi4) requires:**
 - `diffdrive_arduino` - Custom Arduino hardware interface
 - `mpu6050driver` - MPU6050 IMU driver (publishes non-standard units!)
-- `xv_11_driver` - XV-11 Neato LiDAR driver
+- `okdo_lidar` - Okdo LiDAR driver (~10Hz scan rate)
 
 **Desktop requires:**
 - `slam_toolbox` - Online async SLAM
@@ -392,9 +424,9 @@ Default speeds (in `config/joystick.yaml`):
 
 1. **Wheel slip during rotation** - 86% on smooth floors, compensated in configs
 2. **IMU gyro noise** - MPU6050 has significant drift, strict filtering applied
-3. **LiDAR noise** - XV-11 has random noise points (laser filter disabled currently)
+3. **Clock synchronization** - Multi-machine setup can have timing issues, transform_tolerance increased to 1.0s
 4. **No dynamic obstacles** - Nav2 configured for static environments
-5. **Limited speed** - Max 0.26 m/s linear, 1.0 rad/s angular for stability
+5. **Limited speed** - Max 0.26 m/s linear, 0.5 rad/s angular for stability
 
 ## Testing Robot After Changes
 

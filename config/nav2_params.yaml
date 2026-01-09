@@ -115,6 +115,9 @@ controller_server:
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
+    transform_tolerance: 1.0  # Clock sync and WiFi latency
+    tf_buffer_duration: 30.0  # Increased from default 10s - handle WiFi packet loss
+    cmd_vel_topic: cmd_vel_nav  # Publish to cmd_vel_nav for twist_mux
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
@@ -143,7 +146,7 @@ controller_server:
       min_vel_y: 0.0
       max_vel_x: 0.26  # 0.26 m/s = 5.8cm per scan at 4.5Hz - safe for SLAM
       max_vel_y: 0.0
-      max_vel_theta: 0.5  # Reduced from 1.0 - XV-11 is 5Hz, limit rotation to ~11°/scan
+      max_vel_theta: 0.5  # Reduced from 1.0 - Okdo LiDAR is ~10Hz, limit rotation for safety
       min_speed_xy: 0.0
       max_speed_xy: 0.26
       min_speed_theta: 0.0
@@ -161,7 +164,7 @@ controller_server:
       sim_time: 1.7
       linear_granularity: 0.05
       angular_granularity: 0.025
-      transform_tolerance: 0.5  # Increased from 0.2 - WiFi latency between robot and desktop
+      transform_tolerance: 1.0  # Increased from 0.5 - Clock sync and WiFi latency between robot and desktop
       xy_goal_tolerance: 0.25
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
@@ -191,6 +194,8 @@ local_costmap:
       height: 3
       resolution: 0.05
       robot_radius: 0.22
+      transform_tolerance: 1.0  # Clock sync and WiFi latency between robot and desktop
+      tf_buffer_duration: 30.0  # Increased from default 10s - handle WiFi packet loss
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -207,16 +212,16 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: /scan  # LD06 is clean enough, no filter needed
+          topic: /scan  # Okdo LiDAR is clean enough, no filter needed
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-          observation_persistence: 1.0  # Reduced from 2.0 - LD06 is cleaner
-          expected_update_rate: 10.0  # LD06 is 10Hz (was 5.0 for XV-11)
-          raytrace_max_range: 8.0  # Increased from 3.0 - LD06 has 12m range
+          observation_persistence: 1.0  # Reduced from 2.0 - Okdo LiDAR is cleaner
+          expected_update_rate: 10.0  # Okdo LiDAR is ~10Hz (was 5.0 for XV-11)
+          raytrace_max_range: 8.0  # Increased from 3.0 - Okdo LiDAR has 12m range
           raytrace_min_range: 0.0
-          obstacle_max_range: 6.0  # Increased from 2.5 - LD06 is much more accurate
+          obstacle_max_range: 6.0  # Increased from 2.5 - Okdo LiDAR is much more accurate
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -234,22 +239,24 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
+      transform_tolerance: 1.0  # Clock sync and WiFi latency between robot and desktop
+      tf_buffer_duration: 30.0  # Increased from default 10s - handle WiFi packet loss
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
         observation_sources: scan
         scan:
-          topic: /scan  # LD06 is clean enough, no filter needed
+          topic: /scan  # Okdo LiDAR is clean enough, no filter needed
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-          observation_persistence: 1.0  # Reduced from 2.0 - LD06 is cleaner
-          expected_update_rate: 10.0  # LD06 is 10Hz (was 5.0 for XV-11)
-          raytrace_max_range: 8.0  # Increased from 3.0 - LD06 has 12m range
+          observation_persistence: 1.0  # Reduced from 2.0 - Okdo LiDAR is cleaner
+          expected_update_rate: 10.0  # Okdo LiDAR is ~10Hz (was 5.0 for XV-11)
+          raytrace_max_range: 8.0  # Increased from 3.0 - Okdo LiDAR has 12m range
           raytrace_min_range: 0.0
-          obstacle_max_range: 6.0  # Increased from 2.5 - LD06 is much more accurate
+          obstacle_max_range: 6.0  # Increased from 2.5 - Okdo LiDAR is much more accurate
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -279,6 +286,8 @@ planner_server:
   ros__parameters:
     expected_planner_frequency: 20.0
     use_sim_time: True
+    transform_tolerance: 1.0  # Clock sync and WiFi latency
+    tf_buffer_duration: 30.0  # Increased from default 10s - handle WiFi packet loss
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -342,7 +351,7 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.26, 0.0, 0.5]  # Reduced angular from 1.0 to 0.5 for 5Hz lidar
+    max_velocity: [0.26, 0.0, 0.5]  # Reduced angular from 1.0 to 0.5 for Okdo LiDAR
     min_velocity: [-0.26, 0.0, -0.5]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
