@@ -8,8 +8,8 @@ def generate_launch_description():
     package_name = 'ros_bot'
 
     return LaunchDescription([
-        # OKDO Lidar HAT (LD06) - publishes to /scan
-        # LD06 is much cleaner than XV-11, no filter needed!
+        # OKDO Lidar HAT (LD06) - publishes to /scan at ~10Hz (hardware fixed rate)
+        # LD06 is much cleaner than XV-11, no filtering needed!
         Node(
             package='ldlidar_stl_ros2',
             executable='ldlidar_stl_ros2_node',

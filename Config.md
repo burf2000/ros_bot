@@ -125,18 +125,6 @@ Quick reference guide for key configuration parameters across the project.
 
 ---
 
-## Lidar Filtering
-
-### `config/laser_filter.yaml`
-| Filter | Key Parameter | Description |
-|--------|---------------|-------------|
-| `range_filter` | 0.1 - 5.0m | Remove points outside valid range |
-| `speckle_filter` | max_range_difference: 0.1 | Remove isolated points >10cm from neighbors |
-| `median_filter` | window_size: 5 | Smooth by taking median of 5 points |
-| `temporal_filter` | temporal_window: 3 | Average over 3 scans to remove blips |
-
----
-
 ## Launch Configuration
 
 ### `launch/desktop.launch.py`
@@ -167,18 +155,15 @@ Quick reference guide for key configuration parameters across the project.
    - SLAM configured to not trust odometry angles
    - EKF does not use wheel yaw orientation
 
-2. **EKF Performance**: Reduced to 10Hz for stable operation on Pi4
-   - Was 20Hz, caused "Failed to meet update rate" warnings
+2. **EKF Performance**: Reduced to 5Hz for stable operation on Pi4
+   - Increased sensor timeout to 0.2s for WiFi latency tolerance
+   - Reduced queue sizes to lower memory usage
 
 3. **Nav2 Startup**: 5-second delay after SLAM
    - Prevents "frame does not exist" errors
    - Gives SLAM time to create map frame
 
-4. **Lidar Filtering**: Mandatory for XV-11 Neato lidar
-   - High noise without filtering
-   - Dramatically improves map quality
-
-5. **IMU Gyro**: Smoothing and strict filtering enabled
+4. **IMU Gyro**: Smoothing and strict filtering enabled
    - MPU6050 has significant noise
    - Units converted from deg/s to rad/s
 
@@ -217,7 +202,6 @@ config/
 ├── nav2_params.yaml                      # Navigation
 ├── my_controllers.yaml                   # Diff drive controller
 ├── joystick.yaml                         # Joystick control
-├── laser_filter.yaml                     # Lidar filtering
 └── twist_mux.yaml                        # Command velocity multiplexing
 
 description/

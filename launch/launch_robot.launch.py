@@ -46,12 +46,12 @@ def generate_launch_description():
             remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
         )
 
-    # Lidar launch - choose based on your hardware:
-    # - 'lidar.launch.py' for XV-11 Neato (old)
-    # - 'lidar_ld06.launch.py' for OKDO LD06 HAT (new)
+    # Lidar launch - OKDO LD06 HAT
+    # LD06 hardware scans at fixed ~10Hz (motor speed), cannot be changed
+    # SLAM/Nav2 configured to handle 10Hz efficiently
     lidar = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','lidar_ld06.launch.py'  # CHANGED: Using LD06
+                    get_package_share_directory(package_name),'launch','lidar_ld06.launch.py'
                 )])
     )
 
@@ -85,7 +85,6 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[{'robot_description': robot_description},
                     controller_params_file]
-        # remappings=[('/diff_cont/odom', '/odom')]
     )
 
     delayed_controller_manager = TimerAction(period=5.0, actions=[controller_manager])
@@ -115,25 +114,6 @@ def generate_launch_description():
             on_start=[joint_broad_spawner],
         )
     )
-
-
-    # Code for delaying a node (I haven't tested how effective it is)
-    # 
-    # First add the below lines to imports
-    # from launch.actions import RegisterEventHandler
-    # from launch.event_handlers import OnProcessExit
-    #
-    # Then add the following below the current diff_drive_spawner
-    # delayed_diff_drive_spawner = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=spawn_entity,
-    #         on_exit=[diff_drive_spawner],
-    #     )
-    # )
-    #
-    # Replace the diff_drive_spawner in the final return with delayed_diff_drive_spawner
-
-
 
     # Launch them all!
     return LaunchDescription([

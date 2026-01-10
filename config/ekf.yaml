@@ -2,11 +2,12 @@
 ekf_filter_node:
   ros__parameters:
     # The frequency, in Hz, at which the filter will output a position estimate
-    # Reduced to 2.5Hz - Pi4 struggles with 5Hz + scan_cleaner processing
+    # 5Hz is sufficient for slow-moving robot - Pi4 handles this well
     frequency: 5.0
 
     # The period, in seconds, after which we consider a sensor to have timed out
-    sensor_timeout: 0.1
+    # Increased from 0.1s - more forgiving for Pi4 and WiFi latency
+    sensor_timeout: 0.2
 
     # If true, will publish the transform from the world_frame to the base_link_frame
     two_d_mode: true
@@ -22,9 +23,9 @@ ekf_filter_node:
     publish_tf: true
     publish_acceleration: false
 
-    # Smooth lagged data helps reduce noise from sensors like IMU
+    # Smooth lagged data disabled for Pi4 performance
     smooth_lagged_data: false
-    history_length: 0.0  # Keep 1 second of history for smoothing
+    history_length: 0.0
 
     # Sensor inputs:
     # odom0 - Wheel odometry from diff_drive_controller
@@ -47,8 +48,8 @@ ekf_filter_node:
     odom0_pose_rejection_threshold: 5.0
     odom0_twist_rejection_threshold: 1.0
 
-    # Queue size for odometry messages
-    odom0_queue_size: 5
+    # Queue size for odometry messages - reduced for Pi4
+    odom0_queue_size: 3
 
     # ------------------------
     # IMU Sensor (imu0)
@@ -74,7 +75,7 @@ ekf_filter_node:
     imu0_twist_rejection_threshold: 1.0  # Strict - reject noisy gyro readings
     imu0_linear_acceleration_rejection_threshold: 0.8
 
-    imu0_queue_size: 5
+    imu0_queue_size: 3
 
     # ------------------------
     # Process Noise Covariance

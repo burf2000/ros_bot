@@ -14,7 +14,7 @@ slam_toolbox:
     map_frame: map
     base_frame: base_footprint
     scan_topic: /scan  # LD06 publishes at 10Hz
-    scan_queue_size: 100  # Increased from default 1 - handle 10Hz LD06 (2 seconds of scans)
+    scan_queue_size: 20  # Reduced for Pi4 - 2 seconds buffer at 10Hz
     mode: mapping #localization
 
     # if you'd like to immediately start continuing a map at a given pose
@@ -25,28 +25,28 @@ slam_toolbox:
     map_start_at_dock: false  # Set to false to create a new map
 
     debug_logging: false
-    throttle_scans: 1  # Process all throttled scans (already throttled to 5Hz by topic_tools)
+    throttle_scans: 1  # Process all scans at 10Hz
     transform_publish_period: 0.02 #if 0 never publishes odometry
-    map_update_interval: 5.0
+    map_update_interval: 5.0  # Update map every 5 seconds - sufficient for slow robot
     resolution: 0.05
     min_laser_range: 0.05  # LD06 min is 2cm, filter below 5cm for safety
-    max_laser_range: 12.0  # LD06 max range is 12m (was 5.0 for XV-11)
-    minimum_time_interval: 0.2  # At 10Hz lidar with throttle=2, effective 5Hz (200ms/scan)
+    max_laser_range: 8.0  # Reduced from 12m - simple maps don't need long range
+    minimum_time_interval: 0.15  # Reduced from 0.2 - 10Hz lidar = 100ms/scan, allow updates every 150ms
     transform_timeout: 1.0  # Increased from 0.5 - WiFi latency between robot and desktop
-    tf_buffer_duration: 60.  # Increased from 30 - hold older transforms for delayed scans
+    tf_buffer_duration: 30.  # Reduced from 60 - less memory on Pi4
     stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
     enable_interactive_mode: true
 
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.15  # Reduced from 0.5 - update map more frequently
-    minimum_travel_heading: 0.15   # Reduced from 0.5 (28°) to 0.15 (~8.5°) - better rotation tracking
-    scan_buffer_size: 25  # Increased from 10 - handle faster scan rate (10Hz * 2.5s = 25 scans)
-    scan_buffer_maximum_scan_distance: 12.0  # Increased from 10.0 - LD06 has 12m range
-    link_match_minimum_response_fine: 0.3  # Increased from 0.2 - LD06 is cleaner, can be more selective
+    minimum_travel_distance: 0.2  # Slow robot, update every 20cm
+    minimum_travel_heading: 0.2   # ~11.5° rotation before update
+    scan_buffer_size: 15  # Reduced from 25 - 1.5 seconds at 10Hz, less memory
+    scan_buffer_maximum_scan_distance: 8.0  # Reduced from 12.0 - simple maps
+    link_match_minimum_response_fine: 0.3  # LD06 is clean, selective matching
     link_scan_maximum_distance: 1.5
-    loop_search_maximum_distance: 6.0  # Increased from 3.0 - LD06 has much better long-range accuracy
+    loop_search_maximum_distance: 4.0  # Reduced from 6.0 - simpler maps
     do_loop_closing: true
     loop_match_minimum_chain_size: 10
     loop_match_maximum_variance_coarse: 3.0
