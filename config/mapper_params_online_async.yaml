@@ -14,7 +14,7 @@ slam_toolbox:
     map_frame: map
     base_frame: base_footprint
     scan_topic: /scan  # LD06 publishes at 10Hz
-    scan_queue_size: 20  # Increased from default 1 - handle 10Hz LD06 (2 seconds of scans)
+    scan_queue_size: 100  # Increased from default 1 - handle 10Hz LD06 (2 seconds of scans)
     mode: mapping #localization
 
     # if you'd like to immediately start continuing a map at a given pose
