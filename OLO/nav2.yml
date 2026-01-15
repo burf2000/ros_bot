@@ -1,6 +1,6 @@
 bt_navigator:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odom
@@ -62,23 +62,21 @@ bt_navigator:
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
 
 bt_navigator_navigate_to_pose_rclcpp_node:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
 
 controller_server:
   ros__parameters:
-    use_sim_time: true
-    controller_frequency: 10.0  # Reduced for slow robot
+    use_sim_time: false
+    controller_frequency: 10.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     default_server_timeout: 80
     failure_tolerance: 0.3
-    transform_tolerance: 1.0  # Clock sync and WiFi latency
-    tf_buffer_duration: 30.0  # Handle WiFi packet loss
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
@@ -126,18 +124,16 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 3.0  # Reduced for Pi4 - sufficient for slow robot
-      publish_frequency: 1.0  # Reduced for Pi4 - sufficient for slow robot
+      update_frequency: 5.0
+      publish_frequency: 2.0
       global_frame: odom
       robot_base_frame: base_link
-      use_sim_time: true
+      use_sim_time: false
       rolling_window: true
       width: 3
       height: 3
       resolution: 0.05
       robot_radius: 0.22
-      transform_tolerance: 1.0  # Clock sync and WiFi latency
-      tf_buffer_duration: 30.0  # Handle WiFi packet loss
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -154,16 +150,14 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: /scan  # LD06 LiDAR at 10Hz - clean data, no filtering
+          topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-          observation_persistence: 0.5  # Reduced for simpler static environments
-          expected_update_rate: 10.0  # LD06 hardware rate ~10Hz
-          raytrace_max_range: 6.0  # Increased for better navigation
+          raytrace_max_range: 3.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 4.0  # Focus on nearby obstacles
+          obstacle_max_range: 2.5
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -173,32 +167,28 @@ local_costmap:
 global_costmap:
   global_costmap:
     ros__parameters:
-      update_frequency: 1.0  # Reduced for simple static maps
-      publish_frequency: 0.5  # Reduced for simple static maps
+      update_frequency: 1.0
+      publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      use_sim_time: true
+      use_sim_time: false
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
-      transform_tolerance: 1.0  # Clock sync and WiFi latency
-      tf_buffer_duration: 30.0  # Handle WiFi packet loss
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
         observation_sources: scan
         scan:
-          topic: /scan  # LD06 LiDAR at 10Hz - clean data, no filtering
+          topic: /scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
           data_type: "LaserScan"
-          observation_persistence: 0.5  # Reduced for simpler static environments
-          expected_update_rate: 10.0  # LD06 hardware rate ~10Hz
-          raytrace_max_range: 6.0  # Increased for better navigation
+          raytrace_max_range: 3.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 4.0  # Focus on nearby obstacles
+          obstacle_max_range: 2.5
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -211,14 +201,14 @@ global_costmap:
 
 map_server:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
     # Overridden in launch by the "map" launch configuration or provided default value.
     # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
     yaml_filename: ""
 
 map_saver:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
     save_map_timeout: 5.0
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
@@ -226,10 +216,8 @@ map_saver:
 
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 10.0  # Reduced for simple static maps
-    use_sim_time: true
-    transform_tolerance: 1.0  # Clock sync and WiFi latency
-    tf_buffer_duration: 30.0  # Handle WiFi packet loss
+    expected_planner_frequency: 10.0
+    use_sim_time: false
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -240,7 +228,7 @@ planner_server:
 
 smoother_server:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
     smoother_plugins: ["simple_smoother"]
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
@@ -270,7 +258,7 @@ behavior_server:
     global_frame: odom
     robot_base_frame: base_link
     transform_tolerance: 0.5
-    use_sim_time: true
+    use_sim_time: false
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
     min_rotational_vel: 0.4
@@ -278,11 +266,11 @@ behavior_server:
 
 robot_state_publisher:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
 
 waypoint_follower:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
     loop_rate: 20
     stop_on_failure: false
     waypoint_task_executor_plugin: "wait_at_waypoint"
@@ -293,12 +281,12 @@ waypoint_follower:
 
 velocity_smoother:
   ros__parameters:
-    use_sim_time: true
-    smoothing_frequency: 10.0  # Reduced for slow robot
+    use_sim_time: false
+    smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.26, 0.0, 0.5]  # Safe speeds for LD06 at 10Hz
-    min_velocity: [-0.26, 0.0, -0.5]
+    max_velocity: [0.26, 0.0, 1.0]
+    min_velocity: [-0.26, 0.0, -1.0]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
     odom_topic: "odom"
