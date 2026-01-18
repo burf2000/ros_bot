@@ -55,3 +55,15 @@ amcl:
     tf_broadcast: true
     transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
     save_pose_rate: 0.5
+
+    # Initial pose - set automatically so AMCL can start without RViz
+    # These should be updated to match your map's starting position
+    set_initial_pose: true
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+    # Allow less confident initial pose (helps with cloud timing issues)
+    first_map_only: false
+    always_reset_initial_pose: false
