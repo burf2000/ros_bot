@@ -1,0 +1,57 @@
+amcl:
+  ros__parameters:
+    use_sim_time: false
+    # Motion model noise parameters - increased slightly for better adaptation
+    alpha1: 0.3     # rotation noise due to rotation
+    alpha2: 0.15    # rotation noise due to translation
+    alpha3: 0.3     # translation noise due to translation
+    alpha4: 0.15    # translation noise due to rotation
+    alpha5: 0.2     # translation noise due to pure rotation
+    
+    # Frame IDs
+    base_frame_id: "base_footprint"
+    global_frame_id: "map"
+    odom_frame_id: "odom"
+
+    # Laser parameters - matched to Okdo LiDAR specs
+    laser_max_range: 8.0      # Okdo LiDAR max range
+    laser_min_range: 0.05     # Okdo LiDAR min range
+    laser_likelihood_max_dist: 6.0  # Must be less than laser_max_range
+    laser_model_type: "likelihood_field"
+    max_beams: 60
+    scan_topic: scan
+    
+    # Ray tracing parameters for better localization
+    do_beamskip: false
+    beam_skip_distance: 0.5
+    beam_skip_error_threshold: 0.9
+    beam_skip_threshold: 0.3
+    
+    # Particle filter parameters
+    max_particles: 3000       # Increased for better localization accuracy
+    min_particles: 800        # Increased minimum particles
+    pf_err: 0.05
+    pf_z: 0.99
+    recovery_alpha_fast: 0.0
+    recovery_alpha_slow: 0.0
+    resample_interval: 1
+    
+    # Robot motion model
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    
+    # Update thresholds - when to update particle filter
+    update_min_a: 0.15        # Slightly more sensitive to angular movement
+    update_min_d: 0.2         # Slightly more sensitive to linear movement
+    
+    # Laser measurement model parameters
+    sigma_hit: 0.2
+    z_hit: 0.5
+    z_max: 0.05
+    z_rand: 0.5
+    z_short: 0.05
+    lambda_short: 0.1
+    
+    # Transform and timing
+    tf_broadcast: true
+    transform_tolerance: 1.0  # Handle WiFi latency between robot and desktop
+    save_pose_rate: 0.5
