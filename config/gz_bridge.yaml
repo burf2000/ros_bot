@@ -20,7 +20,8 @@
 
 
 # gz topic published by DiffDrive plugin
-- ros_topic_name: "odom"
+# Using /diff_cont/odom for consistency with real robot (no EKF)
+- ros_topic_name: "diff_cont/odom"
   gz_topic_name: "odom"
   ros_type_name: "nav_msgs/msg/Odometry"
   gz_type_name: "gz.msgs.Odometry"
