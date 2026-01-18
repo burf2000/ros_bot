@@ -53,5 +53,5 @@ amcl:
     
     # Transform and timing
     tf_broadcast: true
-    transform_tolerance: 1.0  # Handle WiFi latency between robot and desktop
+    transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
     save_pose_rate: 0.5

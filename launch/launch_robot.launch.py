@@ -55,19 +55,22 @@ def generate_launch_description():
                 )])
     )
 
-    imu = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory("mpu6050driver"),'launch','mpu6050driver_launch.py'
-                )])
-    )
+    # IMU disabled for OLO - wheel odometry tracks well (~0.5% slip)
+    # and IMU was causing high CPU usage on Pi4
+    # imu = IncludeLaunchDescription(
+    #             PythonLaunchDescriptionSource([os.path.join(
+    #                 get_package_share_directory("mpu6050driver"),'launch','mpu6050driver_launch.py'
+    #             )])
+    # )
 
     # IMU unit converter: converts angular_velocity from degrees/sec to radians/sec
-    imu_converter = Node(
-        package='ros_bot',
-        executable='imu_unit_converter.py',
-        name='imu_unit_converter',
-        output='screen'
-    )
+    # Disabled - not needed when IMU is disabled
+    # imu_converter = Node(
+    #     package='ros_bot',
+    #     executable='imu_unit_converter.py',
+    #     name='imu_unit_converter',
+    #     output='screen'
+    # )
 
     camera = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
@@ -120,8 +123,8 @@ def generate_launch_description():
         rsp,
         twist_mux,
         lidar,
-        imu,
-        imu_converter,
+        # imu,           # Disabled - high CPU on Pi4, not needed with good wheel traction
+        # imu_converter, # Disabled - not needed when IMU is disabled
         camera,
         robot_localization_node,
         delayed_controller_manager,
