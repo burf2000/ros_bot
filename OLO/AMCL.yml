@@ -53,8 +53,11 @@ amcl:
     
     # Transform and timing
     tf_broadcast: true
-    transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
+    transform_tolerance: 10.0  # Increased for OLO cloud latency
     save_pose_rate: 0.5
+
+    # Scan queue - increased for cloud latency
+    scan_queue_size: 20
 
     # Initial pose - set automatically so AMCL can start without RViz
     # These should be updated to match your map's starting position
