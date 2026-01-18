@@ -28,15 +28,18 @@ def generate_launch_description():
                 )]), launch_arguments={'use_sim_time': 'false', 'use_ros2_control': 'true'}.items()
     )
 
-    # Robot Localization EKF - fuses wheel odometry + IMU
-    ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
-    robot_localization_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node',
-        output='screen',
-        parameters=[ekf_config_path]
-    )
+    # Robot Localization EKF - DISABLED
+    # EKF not needed: wheel traction is good (~0.5% slip), IMU was disabled anyway
+    # DiffDriveController now publishes odom->base_footprint transform directly (enable_odom_tf: true)
+    # This reduces Pi4 CPU load and eliminates a potential bottleneck
+    # ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
+    # robot_localization_node = Node(
+    #     package='robot_localization',
+    #     executable='ekf_node',
+    #     name='ekf_filter_node',
+    #     output='screen',
+    #     parameters=[ekf_config_path]
+    # )
 
     twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
     twist_mux = Node(
@@ -123,10 +126,10 @@ def generate_launch_description():
         rsp,
         twist_mux,
         lidar,
-        # imu,           # Disabled - high CPU on Pi4, not needed with good wheel traction
-        # imu_converter, # Disabled - not needed when IMU is disabled
+        # imu,                      # Disabled - high CPU on Pi4, not needed with good wheel traction
+        # imu_converter,            # Disabled - not needed when IMU is disabled
         camera,
-        robot_localization_node,
+        # robot_localization_node,  # Disabled - DiffDriveController publishes odom TF directly
         delayed_controller_manager,
         delayed_diff_drive_spawner,
         delayed_joint_broad_spawner

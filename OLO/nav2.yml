@@ -3,7 +3,7 @@ bt_navigator:
     use_sim_time: false
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /odom
+    odom_topic: /diff_cont/odom  # Direct from DiffDriveController (no EKF)
     bt_loop_duration: 10
     default_server_timeout: 40
     wait_for_service_timeout: 1000
@@ -160,8 +160,10 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          observation_persistence: 0.5  # Handle intermittent odometry issues
-          expected_update_rate: 10.0    # Match LiDAR rate
+          sensor_frame: "laser_frame"
+          inf_is_valid: true
+          observation_persistence: 1.0  # Increased for clock desync
+          expected_update_rate: 5.0     # Reduced expectation
           raytrace_max_range: 6.0
           raytrace_min_range: 0.0
           obstacle_max_range: 4.0
@@ -195,8 +197,10 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          observation_persistence: 0.5  # Handle intermittent odometry issues
-          expected_update_rate: 10.0    # Match LiDAR rate
+          sensor_frame: "laser_frame"
+          inf_is_valid: true
+          observation_persistence: 1.0  # Increased for clock desync
+          expected_update_rate: 5.0     # Reduced expectation
           raytrace_max_range: 6.0
           raytrace_min_range: 0.0
           obstacle_max_range: 4.0
@@ -302,7 +306,7 @@ velocity_smoother:
     min_velocity: [-0.26, 0.0, -0.5]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
-    odom_topic: "odom"
+    odom_topic: "/diff_cont/odom"  # Direct from DiffDriveController (no EKF)
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0

@@ -1,4 +1,12 @@
 # Robot Localization Configuration for OLO Robot
+#
+# NOTE: THIS FILE IS NOT USED
+# The EKF has been disabled because:
+# 1. Wheel traction is good (~0.5% slip) - no sensor fusion needed
+# 2. IMU was disabled anyway (high CPU on Pi4)
+# 3. DiffDriveController now publishes odom->base_footprint TF directly
+#
+# This file is kept for reference only.
 # Single EKF setup - no GPS
 
 ekf_filter_node:
