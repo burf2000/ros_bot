@@ -229,8 +229,8 @@ planner_server:
   ros__parameters:
     expected_planner_frequency: 10.0
     use_sim_time: false
-    transform_tolerance: 1.0  # Handle odometry drift from wheel slip
-    tf_buffer_duration: 30.0  # Handle WiFi packet loss
+    transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
+    tf_buffer_duration: 60.0  # Increased for timing issues
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -270,7 +270,7 @@ behavior_server:
       plugin: "nav2_behaviors/AssistedTeleop"
     global_frame: odom
     robot_base_frame: base_link
-    transform_tolerance: 0.5
+    transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
     use_sim_time: false
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
