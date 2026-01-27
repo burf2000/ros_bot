@@ -77,8 +77,8 @@ controller_server:
     min_theta_velocity_threshold: 0.001
     default_server_timeout: 80
     failure_tolerance: 0.3
-    transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
-    tf_buffer_duration: 60.0  # Increased for timing issues
+    transform_tolerance: 1.0  # Reduced for local network (was 5.0)
+    tf_buffer_duration: 30.0  # Reduced for local network (was 60.0)
     cmd_vel_topic: cmd_vel_nav  # Required for twist_mux integration
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
@@ -103,13 +103,13 @@ controller_server:
     # WORKING SOLUTION: Use RPP controller (optimized for speed) with keepout zones
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.285
+      desired_linear_vel: 0.18
       lookahead_dist: 0.4
       min_lookahead_dist: 0.2
       max_lookahead_dist: 0.6
       lookahead_time: 1.0
       rotate_to_heading_angular_vel: 1.5
-      transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
+      transform_tolerance: 1.0  # Reduced for local network (was 5.0)
       use_velocity_scaled_lookahead_dist: true
       min_approach_linear_velocity: 0.1
       approach_velocity_scaling_dist: 0.3
@@ -117,7 +117,7 @@ controller_server:
       use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: true
       regulated_linear_scaling_min_radius: 0.6
-      regulated_linear_scaling_min_speed: 0.2
+      regulated_linear_scaling_min_speed: 0.12
       use_rotate_to_heading: false
       allow_reversing: false
       max_angular_accel: 4.0
@@ -137,13 +137,13 @@ local_costmap:
       height: 3
       resolution: 0.05
       robot_radius: 0.22
-      transform_tolerance: 10.0  # Increased for OLO cloud latency
-      tf_buffer_duration: 120.0  # Increased for cloud timing issues
+      transform_tolerance: 1.0  # Reduced for local network (was 10.0)
+      tf_buffer_duration: 30.0  # Reduced for local network (was 120.0)
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.25  # Must be >= inscribed radius (0.225)
+        inflation_radius: 0.22
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -162,8 +162,8 @@ local_costmap:
           data_type: "LaserScan"
           sensor_frame: "laser_frame"
           inf_is_valid: true
-          observation_persistence: 1.0  # Increased for clock desync
-          expected_update_rate: 5.0     # Reduced expectation
+          observation_persistence: 0.5  # Reduced for local network (was 1.0)
+          expected_update_rate: 10.0    # Full rate for local network (was 5.0)
           raytrace_max_range: 6.0
           raytrace_min_range: 0.0
           obstacle_max_range: 4.0
@@ -184,8 +184,8 @@ global_costmap:
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
-      transform_tolerance: 10.0  # Increased for OLO cloud latency
-      tf_buffer_duration: 120.0  # Increased for cloud timing issues
+      transform_tolerance: 1.0  # Reduced for local network (was 10.0)
+      tf_buffer_duration: 30.0  # Reduced for local network (was 120.0)
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -199,8 +199,8 @@ global_costmap:
           data_type: "LaserScan"
           sensor_frame: "laser_frame"
           inf_is_valid: true
-          observation_persistence: 1.0  # Increased for clock desync
-          expected_update_rate: 5.0     # Reduced expectation
+          observation_persistence: 0.5  # Reduced for local network (was 1.0)
+          expected_update_rate: 10.0    # Full rate for local network (was 5.0)
           raytrace_max_range: 6.0
           raytrace_min_range: 0.0
           obstacle_max_range: 4.0
@@ -211,7 +211,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.25  # Must be >= inscribed radius (0.225)
+        inflation_radius: 0.22
       always_send_full_costmap: True
 
 map_server:
@@ -233,8 +233,8 @@ planner_server:
   ros__parameters:
     expected_planner_frequency: 10.0
     use_sim_time: false
-    transform_tolerance: 5.0  # Handle clock desync between Pi4 and desktop
-    tf_buffer_duration: 60.0  # Increased for timing issues
+    transform_tolerance: 1.0  # Reduced for local network (was 5.0)
+    tf_buffer_duration: 30.0  # Reduced for local network (was 60.0)
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -274,7 +274,7 @@ behavior_server:
       plugin: "nav2_behaviors/AssistedTeleop"
     global_frame: odom
     robot_base_frame: base_link
-    transform_tolerance: 10.0  # Increased for OLO cloud latency
+    transform_tolerance: 1.0  # Reduced for local network (was 10.0)
     use_sim_time: false
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
@@ -302,7 +302,7 @@ velocity_smoother:
     smoothing_frequency: 10.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.26, 0.0, 0.5]
+    max_velocity: [0.20, 0.0, 0.5]
     min_velocity: [-0.26, 0.0, -0.5]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]

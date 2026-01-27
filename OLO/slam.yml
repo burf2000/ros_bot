@@ -5,7 +5,7 @@ slam_toolbox:
     map_frame: map
     base_frame: base_footprint
     scan_topic: /scan
-    scan_queue_size: 10
+    scan_queue_size: 5  # Reduced for local network (was 10)
 
     # Map publishing configuration
     map_name: /map
@@ -35,8 +35,8 @@ slam_toolbox:
     # Motion model
     minimum_travel_distance: 0.2
     minimum_travel_heading: 0.2
-    tf_buffer_duration: 60.0
-    transform_timeout: 5.0
+    tf_buffer_duration: 30.0  # Reduced for local network (was 60.0)
+    transform_timeout: 1.0    # Reduced for local network (was 5.0)
     
     # Interactive mode
     enable_interactive_mode: true
