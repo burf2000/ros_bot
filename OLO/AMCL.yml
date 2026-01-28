@@ -32,8 +32,8 @@ amcl:
     min_particles: 800        # Increased minimum particles
     pf_err: 0.05
     pf_z: 0.99
-    recovery_alpha_fast: 0.0
-    recovery_alpha_slow: 0.0
+    recovery_alpha_fast: 0.1
+    recovery_alpha_slow: 0.001
     resample_interval: 1
     
     # Robot motion model

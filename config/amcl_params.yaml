@@ -33,8 +33,8 @@ amcl:
     beam_skip_threshold: 0.3
 
     # Particle filter parameters
-    max_particles: 2000       # Good balance of accuracy vs CPU
-    min_particles: 500        # Minimum particles to maintain
+    max_particles: 3000       # Increased for better localization accuracy
+    min_particles: 800        # Increased minimum particles
     pf_err: 0.05
     pf_z: 0.99
     recovery_alpha_fast: 0.1  # Enable recovery for kidnapped robot
@@ -65,7 +65,7 @@ amcl:
     scan_queue_size: 5
 
     # Initial pose - can be overridden by RViz "2D Pose Estimate"
-    set_initial_pose: false   # Set to true and configure below for automatic start
+    set_initial_pose: true    # Automatically set initial pose so AMCL can start without RViz
     initial_pose:
       x: 0.0
       y: 0.0
