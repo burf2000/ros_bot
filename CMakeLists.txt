@@ -33,8 +33,13 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY config description launch worlds
+  DIRECTORY config description launch worlds maps docs
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS scripts/imu_unit_converter.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()

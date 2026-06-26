@@ -6,7 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, Command
 
 from launch_ros.actions import Node
 
@@ -16,6 +16,7 @@ def generate_launch_description():
 
 
     # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
+    # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
 
     package_name='ros_bot' #<--- CHANGE ME
 
@@ -29,6 +30,24 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory(package_name),'launch','joystick.launch.py'
                 )]), launch_arguments={'use_sim_time': 'true'}.items()
+    )
+
+    twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
+    twist_mux = Node(
+            package="twist_mux",
+            executable="twist_mux",
+            parameters=[twist_mux_params, {'use_sim_time': True}],
+            remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
+        )
+
+    # Robot Localization EKF - fuses wheel odometry + IMU (simulated)
+    ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
+    robot_localization_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_config_path, {'use_sim_time': True}]
     )
 
     default_world = os.path.join(
@@ -45,10 +64,7 @@ def generate_launch_description():
         description='World to load'
         )
 
-
-    gazebo_params_file = os.path.join(get_package_share_directory(package_name),'config','gazebo_params.yaml')
-
-    # Include the Gazebo launch file, provided by the gazebo_ros package
+    # Include the Gazebo launch file, provided by the ros_gz_sim package
     gazebo = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
@@ -75,6 +91,38 @@ def generate_launch_description():
         arguments=["joint_broad"],
     )
 
+    robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
+
+    controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
+
+    controller_manager = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[{'robot_description': robot_description},
+                    controller_params_file],
+        output='screen'
+    )
+
+
+    bridge_params = os.path.join(get_package_share_directory(package_name),'config','gz_bridge.yaml')
+    ros_gz_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        arguments=[
+            '--ros-args',
+            '-p',
+            f'config_file:={bridge_params}',
+        ]
+    )
+
+    ros_gz_image_bridge = Node(
+        package="ros_gz_image",
+        executable="image_bridge",
+        arguments=["/camera/image_raw"]
+    )
+
+
+
     # Code for delaying a node (I haven't tested how effective it is)
     # 
     # First add the below lines to imports
@@ -98,8 +146,13 @@ def generate_launch_description():
         rsp,
         joystick,
         twist_mux,
+        robot_localization_node,
+        world_arg,
         gazebo,
         spawn_entity,
+        controller_manager,
         diff_drive_spawner,
-        joint_broad_spawner
+        joint_broad_spawner,
+        ros_gz_bridge,
+        ros_gz_image_bridge
     ])

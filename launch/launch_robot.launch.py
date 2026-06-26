@@ -28,12 +28,18 @@ def generate_launch_description():
                 )]), launch_arguments={'use_sim_time': 'false', 'use_ros2_control': 'true'}.items()
     )
 
-    joystick = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','joystick.launch.py'
-                )])
-    )
-
+    # Robot Localization EKF - DISABLED
+    # EKF not needed: wheel traction is good (~0.5% slip), IMU was disabled anyway
+    # DiffDriveController now publishes odom->base_footprint transform directly (enable_odom_tf: true)
+    # This reduces Pi4 CPU load and eliminates a potential bottleneck
+    # ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
+    # robot_localization_node = Node(
+    #     package='robot_localization',
+    #     executable='ekf_node',
+    #     name='ekf_filter_node',
+    #     output='screen',
+    #     parameters=[ekf_config_path]
+    # )
 
     twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
     twist_mux = Node(
@@ -43,11 +49,24 @@ def generate_launch_description():
             remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
         )
 
+    # Lidar launch - OKDO LD06 HAT
+    # LD06 hardware scans at fixed ~10Hz (motor speed), cannot be changed
+    # SLAM/Nav2 configured to handle 10Hz efficiently
     lidar = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory(package_name),'launch','lidar.launch.py'
+                    get_package_share_directory(package_name),'launch','lidar_ld06.launch.py'
                 )])
     )
+
+    # IMU disabled for OLO - wheel odometry tracks well (~0.5% slip)
+    # and IMU was causing high CPU usage on Pi4
+    imu = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory("mpu6050driver"),'launch','mpu6050driver_launch.py'
+                )])
+    )
+
+    # IMU now publishes rad/s natively; converter removed
 
     camera = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
@@ -95,32 +114,14 @@ def generate_launch_description():
         )
     )
 
-
-    # Code for delaying a node (I haven't tested how effective it is)
-    # 
-    # First add the below lines to imports
-    # from launch.actions import RegisterEventHandler
-    # from launch.event_handlers import OnProcessExit
-    #
-    # Then add the following below the current diff_drive_spawner
-    # delayed_diff_drive_spawner = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=spawn_entity,
-    #         on_exit=[diff_drive_spawner],
-    #     )
-    # )
-    #
-    # Replace the diff_drive_spawner in the final return with delayed_diff_drive_spawner
-
-
-
     # Launch them all!
     return LaunchDescription([
         rsp,
-        joystick,
         twist_mux,
         lidar,
+        imu,
         camera,
+        # robot_localization_node,  # Disabled - DiffDriveController publishes odom TF directly
         delayed_controller_manager,
         delayed_diff_drive_spawner,
         delayed_joint_broad_spawner
