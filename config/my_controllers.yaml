@@ -13,56 +13,48 @@ diff_cont:
 
     publish_rate: 50.0
 
-    base_frame_id: base_link
+    base_frame_id: base_footprint
 
     left_wheel_names: ['left_wheel_joint']
     right_wheel_names: ['right_wheel_joint']
-    # wheel details -- IMPORTANT
     wheel_separation: 0.280
-    wheel_radius: 0.033
+    wheel_radius: 0.0325
 
-    use_stamped_vel: false
+    use_stamped_vel: false  # Use standard Twist messages on cmd_vel_unstamped
 
-    # open_loop: false    
-
-    # wheels_per_side: x
-    # wheel_separation_multiplier: x
-    # left_wheel_radius_multiplier: x
-    # right_wheel_radius_multiplier: x
-
-    # odom_frame_id: x
-    # pose_covariance_diagonal: x
-    # twist_covariance_diagonal: x
-    # open_loop: x
-    # enable_odom_tf: x
-
-    # cmd_vel_timeout: x
-    # publish_limited_velocity: x
-    # velocity_rolling_window_size: x
-    
-
-    # linear.x.has_velocity_limits: false
-    # linear.x.has_acceleration_limits: false
-    # linear.x.has_jerk_limits: false
-    # linear.x.max_velocity: NAN
-    # linear.x.min_velocity: NAN
-    # linear.x.max_acceleration: NAN
-    # linear.x.min_acceleration: NAN
-    # linear.x.max_jerk: NAN
-    # linear.x.min_jerk: NAN
-
-    # angular.z.has_velocity_limits: false
-    # angular.z.has_acceleration_limits: false
-    # angular.z.has_jerk_limits: false
-    # angular.z.max_velocity: NAN
-    # angular.z.min_velocity: NAN
-    # angular.z.max_acceleration: NAN
-    # angular.z.min_acceleration: NAN
-    # angular.z.max_jerk: NAN
-    # angular.z.min_jerk: NAN
+    odom_frame_id: odom
+    # Wheel traction is good - calibration showed ~0.5% slip (1.78° drift on 360° rotation)
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    open_loop: false
+    enable_odom_tf: true  # DiffDriveController publishes odom->base_footprint directly (no EKF needed)
 
 
 
+    cmd_vel_timeout: 0.5
+    publish_limited_velocity: true
+    velocity_rolling_window_size: 10
 
-# joint_broad:
-#   ros__parameters:
+    # Velocity limits tuned for LD06 lidar (10Hz scan rate)
+    # At 10Hz, scans are 100ms apart
+    # Linear: 0.26 m/s × 0.1s = 2.6cm between scans (very safe)
+    # Angular: 0.5 rad/s × 0.1s = 0.05 rad = 2.9° between scans (excellent for SLAM)
+    linear.x.has_velocity_limits: true
+    linear.x.has_acceleration_limits: true
+    linear.x.has_jerk_limits: false
+    linear.x.max_velocity: 0.26  # m/s - conservative for stable mapping
+    linear.x.min_velocity: -0.26
+    linear.x.max_acceleration: 1.0  # m/s²
+    linear.x.min_acceleration: -1.0
+    linear.x.max_jerk: 0.0
+    linear.x.min_jerk: 0.0
+
+    angular.z.has_velocity_limits: true
+    angular.z.has_acceleration_limits: true
+    angular.z.has_jerk_limits: false
+    angular.z.max_velocity: 0.5  # rad/s (~28°/s) - safe for 10Hz lidar
+    angular.z.min_velocity: -0.5
+    angular.z.max_acceleration: 2.0  # rad/s²
+    angular.z.min_acceleration: -2.0
+    angular.z.max_jerk: 0.0
+    angular.z.min_jerk: 0.0

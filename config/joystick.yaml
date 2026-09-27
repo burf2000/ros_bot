@@ -9,16 +9,16 @@ teleop_node:
     axis_linear:
       x: 1
     scale_linear:
-      x: 0.5
+      x: 0.20  # Conservative speed for mapping with 5Hz lidar
     scale_linear_turbo:
-      x: 1.0
+      x: 0.26  # Match controller limit - max safe speed for 5Hz lidar
 
     axis_angular:
       yaw: 0
     scale_angular:
-      yaw: 0.5
+      yaw: 0.4  # Reduced from 1.0 - safe rotation for 5Hz lidar
     scale_angular_turbo:
-      yaw: 1.0
+      yaw: 0.5   # Reduced from 2.0 - match controller limit (0.5 rad/s = 28°/s)
 
 
     enable_button: 6

@@ -13,49 +13,50 @@ slam_toolbox:
     odom_frame: odom
     map_frame: map
     base_frame: base_footprint
-    scan_topic: /scan
+    scan_topic: /scan  # LD06 publishes at 10Hz
+    scan_queue_size: 20  # Reduced for Pi4 - 2 seconds buffer at 10Hz
     mode: mapping #localization
 
     # if you'd like to immediately start continuing a map at a given pose
     # or at the dock, but they are mutually exclusive, if pose is given
     # will use pose
-    map_file_name: /home/burf2000/dev_ws/my_map_serial
-    # map_start_pose: [0.0, 0.0, 0.0]
-    map_start_at_dock: true
+    # map_file_name: /home/burf2000/dev_ws/my_map_serial  # Comment out to start fresh
+    map_start_pose: [0.0, 0.0, 0.0]
+    map_start_at_dock: false  # Set to false to create a new map
 
     debug_logging: false
-    throttle_scans: 1
+    throttle_scans: 1  # Process all scans at 10Hz
     transform_publish_period: 0.02 #if 0 never publishes odometry
-    map_update_interval: 5.0
+    map_update_interval: 5.0  # Update map every 5 seconds - sufficient for slow robot
     resolution: 0.05
-    min_laser_range: 0.1
-    max_laser_range: 5.0 #for rastering images
-    minimum_time_interval: 0.5
-    transform_timeout: 0.2
-    tf_buffer_duration: 30.
+    min_laser_range: 0.05  # LD06 min is 2cm, filter below 5cm for safety
+    max_laser_range: 8.0  # Reduced from 12m - simple maps don't need long range
+    minimum_time_interval: 0.15  # Reduced from 0.2 - 10Hz lidar = 100ms/scan, allow updates every 150ms
+    transform_timeout: 1.0  # Increased from 0.5 - WiFi latency between robot and desktop
+    tf_buffer_duration: 30.  # Reduced from 60 - less memory on Pi4
     stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
     enable_interactive_mode: true
 
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.5
-    minimum_travel_heading: 0.5
-    scan_buffer_size: 10
-    scan_buffer_maximum_scan_distance: 10.0
-    link_match_minimum_response_fine: 0.1  
+    minimum_travel_distance: 0.2  # Slow robot, update every 20cm
+    minimum_travel_heading: 0.2   # ~11.5° rotation before update
+    scan_buffer_size: 15  # Reduced from 25 - 1.5 seconds at 10Hz, less memory
+    scan_buffer_maximum_scan_distance: 8.0  # Reduced from 12.0 - simple maps
+    link_match_minimum_response_fine: 0.3  # LD06 is clean, selective matching
     link_scan_maximum_distance: 1.5
-    loop_search_maximum_distance: 3.0
-    do_loop_closing: true 
-    loop_match_minimum_chain_size: 10           
-    loop_match_maximum_variance_coarse: 3.0  
-    loop_match_minimum_response_coarse: 0.35    
+    loop_search_maximum_distance: 4.0  # Reduced from 6.0 - simpler maps
+    do_loop_closing: true
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.35
     loop_match_minimum_response_fine: 0.45
 
     # Correlation Parameters - Correlation Parameters
     correlation_search_space_dimension: 0.5
     correlation_search_space_resolution: 0.01
-    correlation_search_space_smear_deviation: 0.1 
+    correlation_search_space_smear_deviation: 0.1
 
     # Correlation Parameters - Loop Closure Parameters
     loop_search_space_dimension: 8.0
@@ -63,12 +64,14 @@ slam_toolbox:
     loop_search_space_smear_deviation: 0.03
 
     # Scan Matcher Parameters
-    distance_variance_penalty: 0.5      
-    angle_variance_penalty: 1.0    
+    # VERY LOW penalties = trust odometry minimally, rely almost entirely on scan matching
+    # Calibration test showed 86% wheel slip during rotation!
+    distance_variance_penalty: 0.1      # Minimal trust in odometry position
+    angle_variance_penalty: 0.05        # Almost no trust in odometry angles (86% slip!)
 
-    fine_search_angle_offset: 0.00349     
-    coarse_search_angle_offset: 0.349   
-    coarse_angle_resolution: 0.0349        
+    fine_search_angle_offset: 0.00349
+    coarse_search_angle_offset: 0.785     # 45° search (was 30°) - odometry rotation very unreliable
+    coarse_angle_resolution: 0.0349
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
     use_response_expansion: true
