@@ -75,7 +75,30 @@ def generate_launch_description():
     )
 
 
-    robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
+    # Build the robot description from the xacro DIRECTLY — exactly as
+    # rsp.launch.py does — rather than asking robot_state_publisher for it.
+    #
+    # This used to be:
+    #     Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
+    # which is a RACE. `Command` is a lazy substitution: it shells out when the
+    # controller_manager parameter is first needed, i.e. when the 5 s TimerAction
+    # fires. If robot_state_publisher has not finished coming up by then, the
+    # `ros2 param get` exits non-zero, launch raises, and THE ENTIRE LAUNCH
+    # ABORTS — every node gets SIGINT, including the camera and lidar. The robot
+    # then sits there with nothing running and no obvious reason why.
+    #
+    # Observed on the robot 2026-10-06:
+    #     [ERROR] [launch]: Caught exception in launch: executed command failed.
+    #     Command: ros2 param get --hide-type /robot_state_publisher robot_description
+    #
+    # Reading the xacro ourselves has no ordering dependency at all, and yields
+    # byte-identical URDF because the arguments match rsp.launch.py's defaults
+    # (use_ros2_control:=true, sim_mode:=false — see the launch_arguments passed
+    # to rsp above).
+    xacro_file = os.path.join(
+        get_package_share_directory(package_name), 'description', 'robot.urdf.xacro')
+    robot_description = Command(
+        ['xacro ', xacro_file, ' use_ros2_control:=true sim_mode:=false'])
 
     controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
 
