@@ -106,7 +106,7 @@ This opens three windows:
 
 Behind them:
 - ros2_control **inside Gazebo** (the `gz_ros2_control` plugin), with `diff_cont` and `joint_broad`.
-- the joystick, `twist_mux`, the EKF (wheel odom + simulated IMU).
+- the joystick and `twist_mux`. There is no EKF, as on the real robot: `diff_cont` publishes `odom → base_footprint`.
 - the ROS↔Gazebo bridge for `/clock`, `/scan` and the camera.
 
 Everything runs with `use_sim_time`.
