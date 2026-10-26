@@ -4,9 +4,10 @@ from ament_index_python.packages import get_package_share_directory
 
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
 
@@ -40,15 +41,10 @@ def generate_launch_description():
             remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
         )
 
-    # Robot Localization EKF - fuses wheel odometry + IMU (simulated)
-    ekf_config_path = os.path.join(get_package_share_directory(package_name),'config','ekf.yaml')
-    robot_localization_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node',
-        output='screen',
-        parameters=[ekf_config_path, {'use_sim_time': True}]
-    )
+    # No EKF in sim, to match the real robot (launch_robot.launch.py has it off): diff_cont publishes
+    # odom->base_footprint itself (enable_odom_tf: true), and a second publisher of the same transform
+    # (the EKF, publish_tf: true) made RViz jump between the two. Nav2 reads /diff_cont/odom directly.
+
 
     default_world = os.path.join(
         get_package_share_directory(package_name),
@@ -64,12 +60,21 @@ def generate_launch_description():
         description='World to load'
         )
 
-    # Include the Gazebo launch file, provided by the ros_gz_sim package
+    # Gazebo server and GUI as SEPARATE processes. Started together ('gz sim <world>'), a GUI that hangs on
+    # start-up (seen in the ROS2 Lab) also stops the server: no /clock, no robot, RViz at ROS time 0.
+    # Split, the simulation, ros2_control, RViz and the steering window run even if the Gazebo window is
+    # slow or never appears; gui:=false skips it entirely (lighter, and fine with RViz).
     gazebo = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
-                    launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'true'}.items()
+                    launch_arguments={'gz_args': ['-s -r -v2 ', world], 'on_exit_shutdown': 'true'}.items()
              )
+    gui_arg = DeclareLaunchArgument('gui', default_value='true', description='Open the Gazebo window')
+    gazebo_gui = ExecuteProcess(
+        cmd=['gz', 'sim', '-g', '-v2'],
+        condition=IfCondition(LaunchConfiguration('gui')),
+        output='screen'
+    )
 
     # Run the spawner node from the ros_gz_sim package. The entity name doesn't really matter if you only have a single robot.
     spawn_entity = Node(package='ros_gz_sim', executable='create',
@@ -135,17 +140,51 @@ def generate_launch_description():
 
 
 
+    # RViz, on by default. drive_bot.rviz is fixed to odom (robot, LiDAR, camera), which works without a map;
+    # use rviz_config:=main.rviz once slam_toolbox is running.
+    rviz_arg = DeclareLaunchArgument('rviz', default_value='true', description='Start RViz')
+    rviz_config_arg = DeclareLaunchArgument('rviz_config', default_value='drive_bot.rviz',
+                                            description='RViz config in ros_bot/config')
+    rviz = Node(
+        package='rviz2',
+        executable='rviz2',
+        arguments=['-d', PathJoinSubstitution([get_package_share_directory(package_name), 'config',
+                                               LaunchConfiguration('rviz_config')])],
+        parameters=[{'use_sim_time': True}],
+        condition=IfCondition(LaunchConfiguration('rviz')),
+        output='screen'
+    )
+
+
+    # Slider drive GUI (rqt_robot_steering), on by default. It publishes geometry_msgs/Twist on /cmd_vel, the
+    # teleop input of twist_mux (joystick and Nav2 win on priority, see config/twist_mux.yaml). Leave its
+    # "stamped" box unticked: a TwistStamped on /cmd_vel would clash with keyboard teleop.
+    steering_arg = DeclareLaunchArgument('steering', default_value='true', description='Start the slider drive GUI')
+    steering = Node(
+        package='rqt_robot_steering',
+        executable='rqt_robot_steering',   # the topic is set in its window (default /cmd_vel); no positional args
+        condition=IfCondition(LaunchConfiguration('steering')),
+        output='screen'
+    )
+
+
     # Launch them all!
     return LaunchDescription([
         rsp,
         joystick,
         twist_mux,
-        robot_localization_node,
         world_arg,
         gazebo,
+        gui_arg,
+        gazebo_gui,
         spawn_entity,
         diff_drive_spawner,
         joint_broad_spawner,
         ros_gz_bridge,
-        ros_gz_image_bridge
+        ros_gz_image_bridge,
+        rviz_arg,
+        rviz_config_arg,
+        rviz,
+        steering_arg,
+        steering
     ])
