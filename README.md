@@ -1,498 +1,195 @@
-# 🦾 ROSBot Setup & Usage Guide
+# ROSBot (pi4-ros)
 
-## 🚀 Robot Package Template
+A two-wheeled diff-drive robot: Arduino motor/encoder board over serial, OKDO LD06 LiDAR, MPU6050 IMU and a
+Pi camera, on a Raspberry Pi 4. The same package runs the real robot, the desktop SLAM/Nav2 stack and a
+Gazebo simulation.
 
-### Always Remember
-Before doing anything, **source your workspace**:
+| Where | ROS 2 | Workspace |
+|---|---|---|
+| Robot (Pi 4, `pi4-ros.local`) | Humble | `~/dev_ws` |
+| Desktop / skynet | Jazzy | `~/dev_ws` or `~/ros2_ws` |
+| ROS2 Lab (browser, skynet) | Jazzy | `~/ros2_ws` (domain 87 sandbox) |
+
+Always source the workspace first, and build from its root:
 
 ```bash
 source install/setup.bash
-```
-
-### Build Everything
-From the root of your workspace:
-
-```bash
-colcon build --symlink-install
+colcon build --symlink-install            # or: --packages-select ros_bot
 ```
 
 ---
 
-## 🤖 Running the Robot
+## 1. The real robot
 
-⚠️ **IMPORTANT**: Always start the robot **BEFORE** launching the desktop stack!
+**Start the robot first, then the desktop.** Autostart is off, so after a reboot nothing runs until you
+launch it.
 
----
-
-## 🗺️ Default Workflow: Map → Navigate
-
-### **Standard Usage (One Launch, Map + Navigate)**
-
-**On Robot (Pi4):**
+On the robot:
 ```bash
 ssh burf2000@pi4-ros.local
-sudo chmod a+rw /dev/ttyUSB0 /dev/ttyACM0
+sudo chmod a+rw /dev/ttyUSB0 /dev/ttyACM0     # Arduino + LiDAR
 ros2 launch ros_bot launch_robot.launch.py
 ```
 
-**On Desktop:**
+This starts:
+- `robot_state_publisher` (robot model and TF)
+- ros2_control + `diff_cont` (wheels and encoders; publishes `odom → base_footprint` itself)
+- `twist_mux` (joystick / teleop / Nav2 → `/diff_cont/cmd_vel_unstamped`)
+- the LD06 LiDAR (`/scan`, about 10 Hz; see `docs/OKDO_LD06_SETUP.md`)
+- the MPU6050 IMU
+- the camera (`/camera/image_raw`, plus `/compressed`)
+
+There is **no EKF on the robot**. Wheel slip is about 0.5%, so `diff_cont` publishes odometry directly to
+save Pi CPU.
+
+Wait for `Loaded diff_cont` before starting the desktop.
+
+On the Burf Platform the robot instead runs `launch_robot_slam.launch.py slam:=false` (the base stack), plus
+`launch_slam_mode.launch.py` in its own service. That one picks mapping or localization from
+`~/maps/.slam_intent.json`, which the Platform driver writes.
+
+## 2. The desktop (SLAM + Nav2 + joystick)
+
 ```bash
-# Launch everything with defaults (SLAM + Nav2 + Joystick, no RViz)
 ros2 launch ros_bot desktop.launch.py
 ```
 
-**Default behavior:**
-- ✅ SLAM Toolbox running (fresh map every time)
-- ✅ Nav2 running (ready for goals once map is built)
-- ✅ Joystick enabled
-- ❌ RViz disabled (launch separately if needed)
-- ❌ Keyboard teleop disabled
+| Option | Default | |
+|---|---|---|
+| `slam:=` | `true` | slam_toolbox, a fresh map every launch |
+| `nav2:=` | `true` | Nav2, ready for goals once there is a map |
+| `joystick:=` | `true` | gamepad (see below) |
+| `teleop:=` | `false` | keyboard teleop instead |
+| `rviz:=` | `false` | RViz with `config/main.rviz` |
 
-**Usage:**
-1. **Drive around with joystick** to build map
-2. **Open RViz** in separate terminal: `rviz2 -d ~/dev_ws/src/ros_bot/config/main.rviz`
-3. **Set initial pose** in RViz (2D Pose Estimate)
-4. **Send navigation goals** (2D Goal Pose)
-5. Robot navigates autonomously!
-
-**No need to save/load maps** - fresh map every launch!
-
----
-
-### **Optional: Saving Your Map (For Persistence)**
-
-If you want to save a map for reuse:
-
+Common runs:
 ```bash
-# Option 1: Save using SLAM Toolbox service
-ros2 service call /slam_toolbox/serialize_map slam_toolbox/srv/SerializePoseGraph "{filename: '/home/burf2000/dev_ws/my_map'}"
+ros2 launch ros_bot desktop.launch.py rviz:=true                    # with RViz
+ros2 launch ros_bot desktop.launch.py nav2:=false                   # mapping only
+ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true   # keyboard
+ros2 launch ros_bot desktop_viz.launch.py                           # just look (no SLAM/Nav2)
+rviz2 -d src/ros_bot/config/main.rviz                               # RViz on its own
+```
 
-# Option 2: Save using map_server (traditional way)
+Then:
+1. Drive around to build the map.
+2. In RViz, set **2D Pose Estimate**.
+3. Send **2D Goal Pose**, and Nav2 drives there.
+
+### Saving and reusing a map
+```bash
+# slam_toolbox (keeps the pose graph, so you can continue mapping later)
+ros2 service call /slam_toolbox/serialize_map slam_toolbox/srv/SerializePoseGraph "{filename: '/home/burf2000/dev_ws/my_map'}"
+# plain image + yaml
 ros2 run nav2_map_server map_saver_cli -f ~/dev_ws/my_map
 ```
 
-This creates:
-- `my_map.pgm` - Map image
-- `my_map.yaml` - Map metadata
-- `my_map.posegraph` - SLAM graph (for continuing mapping)
-- `my_map.data` - SLAM data (for continuing mapping)
+To localise against a saved map, use `config/mapper_params_localization.yaml` (mode `localization`, set
+`map_file_name`), or let the Platform do it through `launch_slam_mode.launch.py`. AMCL is an alternative;
+see `docs/AMCL_LOCALIZATION.md` and `launch/localization.launch.py`.
 
----
+## 3. Simulation (Gazebo)
 
-### **Workflow 3: Navigation with Saved Map**
+Uses the current Gazebo (Harmonic, through `ros_gz_sim`), **not** Gazebo Classic. On Jazzy, which is what
+skynet and the ROS2 Lab run:
 
-Use this when you have a map and want autonomous navigation.
-
-**First, update SLAM config to use your saved map:**
 ```bash
-# Edit the SLAM config
-nano ~/dev_ws/src/ros_bot/config/mapper_params_online_async.yaml
-
-# Uncomment and set the map file:
-# map_file_name: /home/burf2000/dev_ws/my_map
-# map_start_at_dock: true
-
-# Or change mode to localization:
-# mode: localization  # Instead of mapping
-```
-
-**Then rebuild:**
-```bash
-cd ~/dev_ws
-colcon build --packages-select ros_bot --symlink-install
-source install/setup.bash
-```
-
-**Launch with Nav2:**
-```bash
-# Full navigation stack (SLAM in localization mode + Nav2)
-ros2 launch ros_bot desktop.launch.py slam:=true nav2:=true joystick:=true teleop:=false rviz:=true
-```
-
-**Set initial pose in RViz:**
-1. Click "2D Pose Estimate" button
-2. Click on map where robot is
-3. Drag to set orientation
-
-**Send navigation goals:**
-1. Click "2D Goal Pose" button
-2. Click destination on map
-3. Robot navigates autonomously!
-
----
-
-## 📋 Quick Reference: Desktop Launch Commands
-
-| Task | Command |
-|------|---------|
-| **🚀 Default workflow** (map + navigate) | `ros2 launch ros_bot desktop.launch.py` |
-| **With RViz** (to see the map) | `ros2 launch ros_bot desktop.launch.py rviz:=true` |
-| **Just mapping** (no Nav2) | `ros2 launch ros_bot desktop.launch.py nav2:=false` |
-| **Keyboard instead of joystick** | `ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true` |
-| **Save map** | `ros2 service call /slam_toolbox/serialize_map slam_toolbox/srv/SerializePoseGraph "{filename: '/home/burf2000/dev_ws/my_map'}"` |
-| **Just visualization** | `ros2 launch ros_bot desktop.launch.py slam:=false nav2:=false rviz:=true` |
-
-**Default parameters:** `slam:=true`, `nav2:=true`, `joystick:=true`, `rviz:=false`, `teleop:=false`
-
-**Robot always runs the same command:**
-```bash
-ros2 launch ros_bot launch_robot.launch.py
-```
-
----
-
-## 🎮 Joystick Controls
-
-**How to use:**
-1. **Hold Enable Button** (Button 6 - usually LB/L1 shoulder button)
-2. **Move left stick** to drive:
-   - **Vertical** (Axis 1): Forward/Backward (0.25 m/s normal, 0.5 m/s turbo)
-   - **Horizontal** (Axis 0): Turn left/right (0.5 rad/s normal, 1.0 rad/s turbo)
-3. **Hold Turbo Button** (Button 7 - usually RB/R1) for faster speeds
-
-**Dead Man's Switch:** You MUST hold the enable button to move (safety feature!)
-
-**Test your joystick:**
-```bash
-# See raw joystick data
-ros2 topic echo /joy
-
-# See velocity commands being sent
-ros2 topic echo /cmd_vel_joy
-```
-
-**Keyboard Controls** (if using `teleop:=true`):
-- `i` - Forward
-- `,` - Backward
-- `j` - Turn left
-- `l` - Turn right
-- `k` - Stop
-- `q/z` - Increase/decrease speeds
-
----
-
-
-
-### Step 1: SSH into the Robot
-```bash
-ssh burf2000@pi4-ros.local
-```
-
-### Step 2: Launch Robot (On Pi4)
-```bash
-sudo chmod a+rw /dev/ttyUSB0 /dev/ttyACM0
-ros2 launch ros_bot launch_robot.launch.py
-```
-
-This launches:
-- ✅ Wheel encoders (diff_drive_controller)
-- ✅ IMU (mpu6050driver)
-- ✅ LiDAR (xv_11_driver)
-- ✅ Camera
-- ✅ **robot_localization EKF** (sensor fusion)
-- ✅ TF publishers (`odom → base_footprint`)
-
-Wait until you see: `[controller_manager]: Loaded diff_cont` and `[ekf_filter_node]: ...`
-
-### Step 3: Launch Desktop (On Your Computer)
-
-**🚀 Standard Workflow (Map + Navigate):**
-```bash
-# Launch with defaults: SLAM + Nav2 + Joystick (no RViz)
-ros2 launch ros_bot desktop.launch.py
-```
-
-**Then open RViz separately (optional):**
-```bash
-rviz2 -d ~/dev_ws/src/ros_bot/config/main.rviz
-```
-
-**Workflow:**
-1. Drive around with joystick to build map
-2. Once happy with map, send Nav2 goals in RViz
-3. Robot navigates autonomously!
-
-**Optional Variants:**
-```bash
-# With RViz included
-ros2 launch ros_bot desktop.launch.py rviz:=true
-
-# No joystick (use keyboard instead)
-ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true
-
-# Just mapping (no Nav2)
-ros2 launch ros_bot desktop.launch.py nav2:=false
-
-# Just visualization
-ros2 launch ros_bot desktop_viz.launch.py
-```
-
-**📋 Manual Way (Individual Components):**
-```bash
-ros2 launch slam_toolbox online_async_launch.py   slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml   use_sim_time:=false
-
-ros2 launch nav2_bringup navigation_launch.py   params_file:=./src/ros_bot/config/nav2_params.yaml   use_sim_time:=false
-
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
-
-rviz2 -d src/ros_bot/config/main.rviz
-ros2 run rqt_image_view rqt_image_view
-```
-
----
-
-## 🧠 Simulation Mode
-
-### Run the Simulation
-```bash
+ros2 launch ros_bot launch_sim.launch.py                                          # empty world
 ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
-
-ros2 launch slam_toolbox online_async_launch.py   slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml   use_sim_time:=true
-
-ros2 launch nav2_bringup navigation_launch.py   params_file:=./src/ros_bot/config/nav2_params.yaml   use_sim_time:=true
-
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-
-rviz2 -d src/ros_bot/config/main.rviz
 ```
 
----
+This starts:
+- Gazebo with the robot spawned
+- ros2_control **inside Gazebo** (the `gz_ros2_control` plugin), with `diff_cont` and `joint_broad`
+- the joystick, `twist_mux`, the EKF (wheel odom + simulated IMU)
+- the ROS↔Gazebo bridge for `/clock`, `/scan` and the camera
 
-## 📡 Useful ROS2 Commands
+Everything runs with `use_sim_time`.
 
-### Topics
+Drive it:
 ```bash
-ros2 topic list
-ros2 topic echo /topic_name
-ros2 topic info /topic_name --verbose
-ros2 topic hz /topic_name
-ros2 topic pub /topic_name std_msgs/msg/String "data: 'Message'"
+ros2 run teleop_twist_keyboard teleop_twist_keyboard        # publishes /cmd_vel → twist_mux
 ```
 
-### ROS2 Control
+Map and navigate in sim. Run these yourself, because `desktop.launch.py` is fixed to real time:
 ```bash
-ros2 control list_controllers
-ros2 control list_hardware_components
-ros2 control list_hardware_interfaces
+ros2 launch slam_toolbox online_async_launch.py slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml use_sim_time:=true
+ros2 launch nav2_bringup navigation_launch.py params_file:=./src/ros_bot/config/nav2_params.yaml use_sim_time:=true
+rviz2 -d src/ros_bot/config/main.rviz --ros-args -p use_sim_time:=true
 ```
 
-### Teleop
-Old way:
+Sim needs `ros-jazzy-ros-gz`, `ros-jazzy-gz-ros2-control`, `ros-jazzy-twist-mux`,
+`ros-jazzy-twist-stamper`, `ros-jazzy-robot-localization` and `ros-jazzy-joy` / `teleop-twist-joy`.
+
+Just the model, no physics:
 ```bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-
-New way (mapped topic):
-```bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_cont/cmd_vel_unstamped
-```
-
----
-
-## 🧩 Launch Shortcuts
-
-### Desktop (SLAM + Nav2 + Joystick)
-```bash
-# 🚀 Default: Map + Navigate workflow (SLAM + Nav2 + Joystick, no RViz)
-ros2 launch ros_bot desktop.launch.py
-
-# Then open RViz separately:
-rviz2 -d ~/dev_ws/src/ros_bot/config/main.rviz
-
-# Or include RViz in launch:
-ros2 launch ros_bot desktop.launch.py rviz:=true
-
-# Keyboard instead of joystick:
-ros2 launch ros_bot desktop.launch.py joystick:=false teleop:=true
-
-# Just mapping (no Nav2):
-ros2 launch ros_bot desktop.launch.py nav2:=false
-
-# Visualization only (lightweight):
-ros2 launch ros_bot desktop_viz.launch.py
-```
-
-### Simulation
-```bash
-ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
-ros2 launch ros_bot launch_sim.launch.py
-ros2 launch ros_bot rsp.launch.py use_sim_time:=true
-```
-
-### Robot
-```bash
-ros2 launch ros_bot launch_robot.launch.py
-```
-
-### Gazebo
-> ⚠️ Use a PC — Gazebo Classic does not work on macOS.
-
-```bash
-ros2 launch gazebo_ros gazebo.launch.py
-ros2 launch ros_gz_sim gz_sim.launch.py
-```
-
-### RViz
-```bash
-rviz2 -d src/ros_bot/config/main.rviz
-```
-
-### Spawn the Bot
-```bash
-ros2 run gazebo_ros spawn_entity.py -topic robot_description -entity ros_bot
-```
-
-### Misc
-```bash
+ros2 launch ros_bot rsp.launch.py
 ros2 run joint_state_publisher_gui joint_state_publisher_gui
-ros2 topic echo /cmd_vel
 ```
 
----
+## 4. Joystick
 
-## 🧰 Installation & Setup
+- Hold **button 6** (LB / L1): the dead-man switch. Nothing moves without it.
+- **Left stick:**
+  - vertical = forward/back, 0.25 m/s
+  - horizontal = turn, 0.5 rad/s
+- Hold **button 7** (RB / R1) for turbo: 0.5 m/s and 1.0 rad/s.
 
-### Desktop Dependencies
 ```bash
-sudo apt install ros-humble-slam-toolbox ros-humble-navigation2 ros-humble-nav2-bringup
-sudo apt install ros-humble-robot-localization
-sudo apt install ros-humble-teleop-twist-keyboard
+ros2 topic echo /joy              # raw stick data
+ros2 topic echo /cmd_vel_joy      # what the joystick asks for
 ```
 
-### Compression Tools
-```bash
-sudo apt install ros-humble-rqt-image-view
-sudo apt install ros-humble-image-transport-plugins
+Keyboard teleop: `i` forward, `,` back, `j`/`l` turn, `k` stop, `q`/`z` speed up or down.
+
+## 5. Topics and command chain
+
+```
+joystick → /cmd_vel_joy ┐
+teleop   → /cmd_vel     ├→ twist_mux → /diff_cont/cmd_vel_unstamped → diff_cont (Humble)
+Nav2     → /cmd_vel_nav ┘                                          → twist_stamper → /diff_cont/cmd_vel (Jazzy)
 ```
 
-### ROS2 Control
-```bash
-sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-gazebo-ros2-control
-# On Pi:
-sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers
-```
+`twist_mux` priorities: joystick 100 > tracker 20 > Nav2 10 > teleop 5 (`config/twist_mux.yaml`).
 
-### Spawners
+Handy commands:
 ```bash
+ros2 topic list / echo / hz / info --verbose <topic>
+ros2 control list_controllers
 ros2 control list_hardware_interfaces
-ros2 run controller_manager spawner diff_cont
-ros2 run controller_manager spawner joint_broad
-```
-
-### Image Transport
-```bash
-ros2 run image_transport list_transports
-ros2 run image_transport republish compressed raw   --ros-args -r in/compressed:=/camera/image_raw/compressed   -r out:=/camera/image_raw/uncompressed
-```
-
----
-
-## 📸 Camera Setup (Pi)
-
-```bash
-sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera
-sudo usermod -aG video burf2000
-vcgencmd get_camera
-v4l2-ctl --list-devices
-
-ros2 run v4l2_camera v4l2_camera_node --ros-args   -p image_size:="[640,480]" -p camera_frame_id:=camera_link_optical
-
-ros2 launch ros_bot camera.launch
 ros2 run rqt_image_view rqt_image_view
+ros2 run image_transport republish compressed raw --ros-args -r in/compressed:=/camera/image_raw/compressed -r out:=/camera/image_raw/uncompressed
 ```
 
-Check Pi voltage:
+## 6. Setup
+
+Robot (Pi 4, Humble):
 ```bash
-vcgencmd get_throttled
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-twist-mux ros-humble-xacro libserial-dev
+sudo apt install libraspberrypi-bin v4l-utils ros-humble-v4l2-camera ros-humble-image-transport-plugins
+sudo usermod -aG video,tty,dialout burf2000
+sudo apt remove brltty            # it grabs the CH340/Arduino serial port
 ```
+Drivers: [diff-drive_arduino](https://github.com/joshnewans/diff-drive_arduino),
+[serial](https://github.com/joshnewans/serial), [ros2_mpu6050_driver](https://github.com/hiwad-aziz/ros2_mpu6050_driver),
+and the LD06 setup in `docs/OKDO_LD06_SETUP.md`.
 
----
-
-## 🌐 References & Drivers
-
-### IMU
-- https://github.com/hiwad-aziz/ros2_mpu6050_driver
-
-
-### Gazebo
-- [Classic Gazebo Install Guide](https://classic.gazebosim.org/tutorials?tut=install_ubuntu&cat=install)
-- [ROS2 + Gazebo Docs](https://gazebosim.org/docs/latest/ros2_launch_gazebo/)
-
-### Depth Camera (Asus Xtion)
-- [openni2_camera Issue #144](https://github.com/ros-drivers/openni2_camera/issues/144)
-- [openni2_camera (Iron)](https://github.com/ros-drivers/openni2_camera/tree/iron)
-- [ros2_asus_xtion](https://github.com/mgonzs13/ros2_asus_xtion)
-
-### Neato Lidar
-- [xv_11_driver Repo](https://github.com/derkaputte/xv_11_driver/tree/main)
+Desktop (Jazzy):
 ```bash
-ros2 run xv_11_driver xv_11_driver --ros-args -p frame_id:=laser_frame -p port:=/dev/ttyACM0
+sudo apt install ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-robot-localization \
+  ros-jazzy-teleop-twist-keyboard ros-jazzy-teleop-twist-joy ros-jazzy-joy ros-jazzy-twist-mux ros-jazzy-twist-stamper \
+  ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-rqt-image-view ros-jazzy-image-transport-plugins
 ```
 
----
+Key parameters (encoder counts, wheel size, controller rates) are listed in `Config.md`.
 
-## 🔧 Additional Setup
+## 7. Troubleshooting
 
-### For Raspberry Pi
-```bash
-sudo apt install ros-humble-twist-mux libserial-dev ros-humble-xacro
-```
-
-Repos:
-- https://github.com/joshnewans/serial  
-- https://github.com/joshnewans/diff-drive_arduino
-
-List serial devices:
-```bash
-ls /dev/tty*
-ls /dev/serial
-ls /dev/serial/by-id
-```
-
----
-
-## ⚠️ Troubleshooting
-
-### Humble Issues
-```bash
-# spawner.py renamed to spawner
-sudo apt remove brltty  # Removes conflicting package
-```
-
-### USB Permissions
-```bash
-sudo usermod -a -G tty burf2000
-```
-
----
-
-## 🎮 Joystick Support
-```bash
-sudo apt install joystick jstest-gtk evtest
-evtest
-ros2 run joy joy_enumerate_devices
-ros2 run joy joy_node
-ros2 run joy_tester test_joy
-```
-
----
-
-## 🗺️ SLAM Toolbox
-```bash
-sudo apt install ros-humble-slam-toolbox
-ros2 launch slam_toolbox online_async_launch.py   slam_params_file:=./src/ros_bot/config/mapper_params_online_async.yaml
-```
-
----
-
-## 🧭 Navigation (Nav2)
-```bash
-sudo apt install ros-humble-navigation2 ros-humble-nav2-bringup ros-humble-turtlebot3*
-ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true
-```
-
-### TwistMux (Combine Joystick + Nav2 Topics)
-```bash
-sudo apt install ros-humble-twist-mux
-ros2 run twist_mux twist_mux --ros-args   --params-file ./src/ros_bot/config/twist_mux.yaml   -r cmd_vel_out:=diff_cont/cmd_vel_unstamped
-```
+- **Nothing runs after a reboot:** autostart is off, so launch it by hand (section 1).
+- **`/dev/ttyUSB0` or `/dev/ttyACM0` permission denied:** run the `chmod` above, or add yourself to `dialout`/`tty`.
+- **Robot ignores commands:** check `ros2 control list_controllers` shows `diff_cont` active, and that the
+  dead-man button is held.
+- **Sim on Jazzy, robot doesn't move:** `twist_mux` must run with `use_stamped: false`, which `launch_sim`
+  sets. Otherwise `/cmd_vel_joy` ends up carrying both `Twist` and `TwistStamped`.
+- **Camera frame rate drops:** only subscribe to `/camera/image_raw/compressed` across the network (see the
+  note in `launch/camera.launch.py`).
