@@ -4,7 +4,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -60,12 +60,21 @@ def generate_launch_description():
         description='World to load'
         )
 
-    # Include the Gazebo launch file, provided by the ros_gz_sim package
+    # Gazebo server and GUI as SEPARATE processes. Started together ('gz sim <world>'), a GUI that hangs on
+    # start-up (seen in the ROS2 Lab) also stops the server: no /clock, no robot, RViz at ROS time 0.
+    # Split, the simulation, ros2_control, RViz and the steering window run even if the Gazebo window is
+    # slow or never appears; gui:=false skips it entirely (lighter, and fine with RViz).
     gazebo = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
-                    launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'true'}.items()
+                    launch_arguments={'gz_args': ['-s -r -v2 ', world], 'on_exit_shutdown': 'true'}.items()
              )
+    gui_arg = DeclareLaunchArgument('gui', default_value='true', description='Open the Gazebo window')
+    gazebo_gui = ExecuteProcess(
+        cmd=['gz', 'sim', '-g', '-v2'],
+        condition=IfCondition(LaunchConfiguration('gui')),
+        output='screen'
+    )
 
     # Run the spawner node from the ros_gz_sim package. The entity name doesn't really matter if you only have a single robot.
     spawn_entity = Node(package='ros_gz_sim', executable='create',
@@ -166,6 +175,8 @@ def generate_launch_description():
         twist_mux,
         world_arg,
         gazebo,
+        gui_arg,
+        gazebo_gui,
         spawn_entity,
         diff_drive_spawner,
         joint_broad_spawner,
