@@ -98,18 +98,34 @@ ros2 launch ros_bot launch_sim.launch.py                                        
 ros2 launch ros_bot launch_sim.launch.py world:=./src/ros_bot/worlds/obstacles.world
 ```
 
-This starts:
-- Gazebo with the robot spawned
-- ros2_control **inside Gazebo** (the `gz_ros2_control` plugin), with `diff_cont` and `joint_broad`
-- the joystick, `twist_mux`, the EKF (wheel odom + simulated IMU)
-- the ROS↔Gazebo bridge for `/clock`, `/scan` and the camera
+This opens three windows:
+- **Gazebo**, with the robot spawned.
+- **RViz** (`config/drive_bot.rviz`, fixed to `odom`): the robot, its LiDAR hits and the camera.
+- **Robot Steering**: sliders for speed and turn. Drag them, or click `+`, `-`, `<`, `>` and Stop. It
+  publishes `Twist` on `/cmd_vel` into `twist_mux`. Leave **stamped** unticked.
+
+Behind them:
+- ros2_control **inside Gazebo** (the `gz_ros2_control` plugin), with `diff_cont` and `joint_broad`.
+- the joystick, `twist_mux`, the EKF (wheel odom + simulated IMU).
+- the ROS↔Gazebo bridge for `/clock`, `/scan` and the camera.
 
 Everything runs with `use_sim_time`.
 
-Drive it:
+| Option | Default | |
+|---|---|---|
+| `world:=` | `worlds/empty.world` | e.g. `./src/ros_bot/worlds/obstacles.world` |
+| `rviz:=` | `true` | RViz |
+| `rviz_config:=` | `drive_bot.rviz` | use `main.rviz` once SLAM is running (it is fixed to `map`) |
+| `steering:=` | `true` | the slider drive window |
+
+Other ways to drive it:
 ```bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard        # publishes /cmd_vel → twist_mux
+ros2 run teleop_twist_keyboard teleop_twist_keyboard        # keyboard, on /cmd_vel
+# or a gamepad: hold button 6 (see Joystick below)
 ```
+
+Running two simulations at once? Gazebo ignores `ROS_DOMAIN_ID`, so also give each one its own
+`GZ_PARTITION` (for example `export GZ_PARTITION=me`). Otherwise the two Gazebos fight over the same robot.
 
 Map and navigate in sim. Run these yourself, because `desktop.launch.py` is fixed to real time:
 ```bash
@@ -119,7 +135,8 @@ rviz2 -d src/ros_bot/config/main.rviz --ros-args -p use_sim_time:=true
 ```
 
 Sim needs `ros-jazzy-ros-gz`, `ros-jazzy-gz-ros2-control`, `ros-jazzy-twist-mux`,
-`ros-jazzy-twist-stamper`, `ros-jazzy-robot-localization` and `ros-jazzy-joy` / `teleop-twist-joy`.
+`ros-jazzy-twist-stamper`, `ros-jazzy-robot-localization`, `ros-jazzy-joy` / `teleop-twist-joy` and
+`ros-jazzy-rqt-robot-steering`.
 
 Just the model, no physics:
 ```bash
@@ -178,7 +195,7 @@ Desktop (Jazzy):
 ```bash
 sudo apt install ros-jazzy-slam-toolbox ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-robot-localization \
   ros-jazzy-teleop-twist-keyboard ros-jazzy-teleop-twist-joy ros-jazzy-joy ros-jazzy-twist-mux ros-jazzy-twist-stamper \
-  ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-rqt-image-view ros-jazzy-image-transport-plugins
+  ros-jazzy-ros-gz ros-jazzy-gz-ros2-control ros-jazzy-rqt-robot-steering ros-jazzy-rqt-image-view ros-jazzy-image-transport-plugins
 ```
 
 Key parameters (encoder counts, wheel size, controller rates) are listed in `Config.md`.
